@@ -1,0 +1,49 @@
+<div class="container">
+
+	<div class='workflow-control'>
+		<div class="hero-unit">
+		<button type="submit" class="btn btn-default js-home">Home</button>
+		<button type="submit" class="btn btn-default js-upload">Generate SIP</button>	
+		<button type="submit" class="btn btn-success js-download">Download SIP</button>
+		<button type="submit" class="btn btn-default js-search">Show on Search & Retrieve Page</button>
+		<h2></h2>
+		</div>
+	</div>
+
+	<div class="hero-unit">
+		<h1>SIP Generation</h1>
+		Overview of the SIP file content.
+	</div>
+	
+	<div class="row">
+		<div class="span8">
+		    <p class='description'>
+		        In this component all uploaded / ingested files along with the metadata are structured and packaged in accordance to the implementation specifics of the DPS system.<br/>
+		    </p>
+		    <p class='description'>
+		        <b>Status:</b> In future versions of this application the SIP package will be structured for the commercial <b>Rosetta</b> system. This includes the structuring of all digital objects and the records in the METS file in accordance to the specification of the vendor. At the moment this is not fully the case.
+		    </p>
+		    <p class='description'>
+		        <b>CAUTION:</b> The generated ZIP file is of version 2.0. The integrated Windows ZIP functionality has problems with unzipping the (valid) file. Please use the free software <a href='http://www.7-zip.org/download.html'>7-Zip</a> instead.
+		    </p>		    
+		</div>
+	</div>
+	
+	<div class="hero-unit">
+		<h1>Content Overview</h1>
+	</div>
+
+	<div class="row">
+		<div class="span8">
+			<div id="sipgen-region">
+				<img src="spinner.gif" alt="spinner">
+				<p>Waiting for webservice to provide fresh info</p>
+			</div>
+		</div>
+	</div>
+	
+	<div id='loading'>
+		<img src="spinner.gif" alt="spinner">
+		<p>Generating SIP archive. This may take a few minutes...</p>
+	</div>
+</div>
