@@ -16,7 +16,7 @@ var SIPGenerator = module.exports = function(opts) {
 SIPGenerator.prototype.archive = function(session, finish_cb) {
     console.log('[SIPGenerator::archiveSession] session_id: ' + session.id);
 
-console.log('session.files: ' + JSON.stringify(session, null, 4));
+    console.log('session.files: ' + JSON.stringify(session, null, 4));
     var buildm = {
         creOrgNamn: 'DURAARK Consortium',
         archiverOrganizationName: 'DURAARK Consortium',
@@ -84,7 +84,7 @@ SIPGenerator.prototype._copyFiles = function(files, finish_cb) {
         copyFile = this._copyFile;
 
     function handleFile(idx, files) {
-        console.log('[SIPGenerator::handleFile]  idx: ' + idx);
+        console.log('[SIPGenerator::handleFile]  files: ' + JSON.stringify(files, null, 4));
         if (idx <= files.length) {
             if (idx === files.length) {
                 finish_cb();
@@ -92,7 +92,7 @@ SIPGenerator.prototype._copyFiles = function(files, finish_cb) {
             }
 
             var file = files[idx++],
-                source = path.join(appRoot, file.path),
+                source = file.path,
                 target = path.join(appRoot, 'server', 'executables', 'sipgen', 'SIP_Generator', 'built', 'content', path.basename(file.path));
 
             copyFile(source, target, handleFile.bind(this, idx, files));

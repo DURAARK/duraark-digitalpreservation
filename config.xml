@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?><!-- konfigurationsfil för eARD sipgenerator--><!--Skapad av Göran Lindqvist--><!--LDB-Centrum | LTU--><eARD_sip>
-	<uid>UUID:44090c12-904d-483e-be5e-ba6df9c655f1</uid>
+	<uid>UUID:91148925-5b4f-486a-8041-13af04dff30b</uid>
 	<a/>
 	<katSystem>server/executables/sipgen/SIP_Generator/built/system</katSystem>
 	<katMetadata>server/executables/sipgen/SIP_Generator/built/metadata</katMetadata>
