@@ -16,7 +16,6 @@ var SIPGenerator = module.exports = function(opts) {
 SIPGenerator.prototype.archive = function(session, finish_cb) {
     console.log('[SIPGenerator::archiveSession] session_id: ' + session.id);
 
-    console.log('session.files: ' + JSON.stringify(session, null, 4));
     var buildm = {
         creOrgNamn: 'DURAARK Consortium',
         archiverOrganizationName: 'DURAARK Consortium',
@@ -112,7 +111,9 @@ SIPGenerator.prototype._createSIP = function(session, finish_cb) {
     var exec_path = 'java',
         sip_jar = path.join(this._appRoot, 'server', 'executables', 'sipgen', 'SIP_Generator', 'run', 'eARDsip.jar'),
         sip_path = path.join(this._appRoot, 'server', 'executables', 'sipgen', 'SIP_Generator', 'sip', session.uuid + '.zip'),
-        options = '-jar ' + sip_jar + ' ' + session.uuid;
+        public_path = path.join(this._appRoot, '.tmp', 'public', session.uuid + '.zip'),
+        options = '-jar ' + sip_jar + ' ' + session.uuid,
+        that = this;
 
     console.log('[SIPGenerator::identify] About to execute: ' + exec_path + ' ' + options);
 
@@ -130,7 +131,10 @@ SIPGenerator.prototype._createSIP = function(session, finish_cb) {
     });
 
     executable.on('close', function() {
-        finish_cb(sip_path);
+        that._copyFile(sip_path, public_path, function() {
+            var relative_www_path = '/' + session.uuid + '.zip';
+            finish_cb(relative_www_path);
+        })
     })
 };
 

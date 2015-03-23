@@ -31,7 +31,7 @@ module.exports = {
 		sipGenerator.archive(session, function(sip_path) {
 			console.log('[SIPGenerator] created archive: ' + sip_path);
 			res.json({
-				url: path.basename(sip_path)
+				url: sip_path
 			});
 		});
 	}
