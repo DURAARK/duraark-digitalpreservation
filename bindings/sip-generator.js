@@ -16,6 +16,7 @@ var SIPGenerator = module.exports = function(opts) {
 SIPGenerator.prototype.archive = function(session, finish_cb) {
     console.log('[SIPGenerator::archiveSession] session_id: ' + session.id);
 
+console.log('session.files: ' + JSON.stringify(session, null, 4));
     var buildm = {
         creOrgNamn: 'DURAARK Consortium',
         archiverOrganizationName: 'DURAARK Consortium',
