@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!-- konfigurationsfil för eARD sipgenerator--><!--Skapad av Göran Lindqvist--><!--LDB-Centrum | LTU--><eARD_sip>
+	<uid>UUID:23575c2f-2867-4dbb-8f9f-cb1fa3bd5f2f</uid>
+	<a/>
+	<katSystem>server/executables/sipgen/SIP_Generator/built/system</katSystem>
+	<katMetadata>server/executables/sipgen/SIP_Generator/built/metadata</katMetadata>
+	<katContent>server/executables/sipgen/SIP_Generator/built/content</katContent>
+	<utFilContent>server/executables/sipgen/SIP_Generator/temp/cHashsum.txt</utFilContent>
+	<utFilMets>server/executables/sipgen/SIP_Generator/built/sip.xml</utFilMets>
+	<katTarPaket>server/executables/sipgen/SIP_Generator/sip/</katTarPaket>
+	<katTarStart>server/executables/sipgen/SIP_Generator/built/</katTarStart>
+	<patheARDsip>server/executables/sipgen/SIP_Generator/run/eARDsip.jar</patheARDsip>
+	<hashSumType>md5</hashSumType>
+	<md5Lista/>
+	<config_db>
+		<!--sqlite -->
+		<jdbcreg01>org.sqlite.JDBC</jdbcreg01> <!-- used by Class.forName(..) original = com.mysql.jdbc.Driver -->
+		<url01>jdbc:sqlite:sip_db.db</url01> <!-- original:  jdbc:mysql://localhost:3306/sip_db -->
+		<user01/><!-- original: root -->
+		<pw01/><!-- original: rishe -->
+	</config_db>
+	<!--Config för droidning -->
+	<config_filanalys>
+		<katalogOverSubkat>server/executables/sipgen/SIP_Generator/built/</katalogOverSubkat>
+		<pathDroidJar>server/executables/sipgen/SIP_Generator/run/droid/droid.jar</pathDroidJar>
+		<argSignaturfil>server/executables/sipgen/SIP_Generator/run/droid/DROID_SignatureFile_V74.xml</argSignaturfil>
+		<argUtskriftfil>server/executables/sipgen/SIP_Generator/temp/outputDroid</argUtskriftfil>
+		<droidInputFil>server/executables/sipgen/SIP_Generator/temp/DroidInputFil</droidInputFil>
+	</config_filanalys>
+</eARD_sip>
