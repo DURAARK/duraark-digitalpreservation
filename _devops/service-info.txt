@@ -1,7 +1,7 @@
 # namespace:
 local
 # imagename:
-microservice-base
+microservice-sipgenerator
 # dockerfile location:
 ../
 # volume folder (can be empty, but has to be absolute if present)
