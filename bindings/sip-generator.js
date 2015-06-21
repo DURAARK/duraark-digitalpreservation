@@ -1,4 +1,5 @@
-var spawn = require('child_process').spawn,
+var JsonSchemaConverter = require('./json-schema-converter'),
+    spawn = require('child_process').spawn,
     path = require('path'),
     fs = require('fs'),
     sqlite3 = require('sqlite3').verbose(),
@@ -13,8 +14,13 @@ var SIPGenerator = module.exports = function(opts) {
     this._db = new sqlite3.Database(opts.dbPath);
 }
 
+SIPGenerator.prototype.archive = function(sip, finish_cb) {
+    this.dump(sip);
+    this._ingestToRosetta(sip, finish_cb); // FIXXME: make thenable!
+}
+
 SIPGenerator.prototype.dump = function(sip) {
-    var pa = sip.physicalAsset.digitalObjects;
+    var pa = sip.physicalAsset;
 
     console.log('\nStarting SIP ingestion to ROSETTA ...');
 
@@ -24,30 +30,69 @@ SIPGenerator.prototype.dump = function(sip) {
 
     console.log('\n# Physical Asset: ' + sip.label)
 
-    _.each(pa, function(da, idx) {
-            console.log('\n  + DigitalObject: ' + idx);
-            console.log('          Filename: ' + da.techMD.filename);
-            console.log('          Path:     ' + da.path);
+    _.each(pa.digitalObjects, function(da, idx) {
+        console.log('\n  + DigitalObject: ' + idx);
+        console.log('          Filename: ' + da.techMD.filename);
+        console.log('          Path:     ' + da.path);
 
-            _.each(da.derivatives, function(der, idx) {
-                console.log('\n      > Derivative ' + idx);
-                console.log('              Filename: ' + der.techMD.filename);
-                console.log('              Path:     ' + der.path);
-            });
+        _.each(da.derivatives, function(der, idx) {
+            console.log('\n      > Derivative ' + idx);
+            console.log('              Filename: ' + der.techMD.filename);
+            console.log('              Path:     ' + der.path);
+        });
 
-            var techMD = da.techMD.filename ? true : false;
-            var descMD = da.descMD.creator ? true : false;
-            var semMD = (da.semMD.selection.length > 0) ? true : false;
+        var techMD = da.techMD.filename ? true : false;
+        var descMD = da.descMD.creator ? true : false;
+        var semMD = (da.semMD.selection.length > 0) ? true : false;
 
-        console.log('\n  + techMD: ' + techMD); 
-        console.log('\n  + descMD: ' + descMD); 
+        console.log('\n  + techMD: ' + techMD);
+        console.log('\n  + descMD: ' + descMD);
         console.log('\n  + semMD: ' + semMD);
     });
 
-console.log('-------------------------------------------------------------------------');
+    console.log('\n-------------------------------------------------------------------------\n');
 };
 
 SIPGenerator.prototype._ingestToRosetta = function(sip, finish_cb) {
+    var pa = sip.physicalAsset,
+        buildm = {}; // Stores buildm metadata in suitable form to export XML version via JSON2XML
+
+    console.log('\n[STEP] Generating METS description for Intellectual Entity: ' + pa.descMD.address);
+
+    console.log('\n-------------------------------------------------------------------------');
+    console.log('METS content:');
+    console.log('-------------------------------------------------------------------------');
+
+    var physicalAsset_XML = JsonSchemaConverter.mapToPhysicalAssetXML(pa.descMD);
+
+    console.log(JSON.stringify(physicalAsset_XML, null, 4));
+
+
+
+    console.log('\n[STEP] Generating SIP for each digital object ...');
+
+    console.log('\n-------------------------------------------------------------------------');
+    console.log('SIP Generation:');
+    console.log('-------------------------------------------------------------------------');
+
+    _.each(pa.digitalObjects, function(da, idx) {
+        console.log('     Processing file: ' + da.techMD.filename);
+        console.log('\n        + Generating technical metadata description ... ');
+
+        var techMD_XML = JsonSchemaConverter.mapToDigitalObjectTechnicalMDXML(da.techMD);
+        console.log(JSON.stringify(techMD_XML, null, 4));
+
+        console.log('\n        + Generating descriptive metadata description ... ');
+
+        var descMD_XML = JsonSchemaConverter.mapToDigitalObjectDescriptiveMDXML(da.descMD);
+        console.log(JSON.stringify(descMD_XML, null, 4));
+
+        console.log('\n        + Generating semantic enrichment description ... ');
+
+        var semMD_RDF = JsonSchemaConverter.mapToDigitalObjectSemEnrichmentRDF(da.semMD);
+        console.log(JSON.stringify(semMD_RDF, null, 4));
+    });
+
     setTimeout(finish_cb, 1000);
 
     // var buildm = {
@@ -70,11 +115,6 @@ SIPGenerator.prototype._ingestToRosetta = function(sip, finish_cb) {
     //     }.bind(this));
     // }.bind(this));
 };
-
-SIPGenerator.prototype.archive = function(sip, finish_cb) {
-    this.dump(sip);
-    this._ingestToRosetta(sip, finish_cb);
-}
 
 SIPGenerator.prototype._mapMetsFromBuildm = function(uuid, buildm) {
 
