@@ -13,28 +13,67 @@ var SIPGenerator = module.exports = function(opts) {
     this._db = new sqlite3.Database(opts.dbPath);
 }
 
-SIPGenerator.prototype.archive = function(session, finish_cb) {
-    console.log('[SIPGenerator::archiveSession] session_id: ' + session.id);
+SIPGenerator.prototype.dump = function(sip) {
+    var pa = sip.physicalAsset.digitalObjects;
 
-    var buildm = {
-        creOrgNamn: 'DURAARK Consortium',
-        archiverOrganizationName: 'DURAARK Consortium',
-        archiverSoftwareName: 'DURAARK Workbench SIP Generator'
-    };
+    console.log('\nStarting SIP ingestion to ROSETTA ...');
 
-    var mets = this._mapMetsFromBuildm(session.uuid, buildm);
+    console.log('\n-------------------------------------------------------------------------');
+    console.log('CONTENT:');
+    console.log('-------------------------------------------------------------------------');
 
-    this._updateMetsData(mets, session.uuid, function() {
-        this._copyFiles(session.files, function(err) {
-            if (err) {
-                console.log('[SIPGenerator::_copyFiles] error: ' + err);
-                console.log('ABORTING SIP generation!');
-                return;
-            }
+    console.log('\n# Physical Asset: ' + sip.label)
 
-            this._createSIP(session, finish_cb);
-        }.bind(this));
-    }.bind(this));
+    _.each(pa, function(da, idx) {
+            console.log('\n  + DigitalObject: ' + idx);
+            console.log('          Filename: ' + da.techMD.filename);
+            console.log('          Path:     ' + da.path);
+
+            _.each(da.derivatives, function(der, idx) {
+                console.log('\n      > Derivative ' + idx);
+                console.log('              Filename: ' + der.techMD.filename);
+                console.log('              Path:     ' + der.path);
+            });
+
+            var techMD = da.techMD.filename ? true : false;
+            var descMD = da.descMD.creator ? true : false;
+            var semMD = (da.semMD.selection.length > 0) ? true : false;
+
+        console.log('\n  + techMD: ' + techMD); 
+        console.log('\n  + descMD: ' + descMD); 
+        console.log('\n  + semMD: ' + semMD);
+    });
+
+console.log('-------------------------------------------------------------------------');
+};
+
+SIPGenerator.prototype._ingestToRosetta = function(sip, finish_cb) {
+    setTimeout(finish_cb, 1000);
+
+    // var buildm = {
+    //     creOrgNamn: 'DURAARK Consortium',
+    //     archiverOrganizationName: 'DURAARK Consortium',
+    //     archiverSoftwareName: 'DURAARK Workbench SIP Generator'
+    // };
+
+    // var mets = this._mapMetsFromBuildm(sip.uuid, buildm);
+
+    // this._updateMetsData(mets, sip.uuid, function() {
+    //     this._copyFiles(sip.files, function(err) {
+    //         if (err) {
+    //             console.log('[SIPGenerator::_copyFiles] error: ' + err);
+    //             console.log('ABORTING SIP generation!');
+    //             return;
+    //         }
+
+    //         this._createSIP(sip, finish_cb);
+    //     }.bind(this));
+    // }.bind(this));
+};
+
+SIPGenerator.prototype.archive = function(sip, finish_cb) {
+    this.dump(sip);
+    this._ingestToRosetta(sip, finish_cb);
 }
 
 SIPGenerator.prototype._mapMetsFromBuildm = function(uuid, buildm) {
@@ -103,16 +142,16 @@ SIPGenerator.prototype._copyFiles = function(files, finish_cb) {
     }
 };
 
-SIPGenerator.prototype._createSIP = function(session, finish_cb) {
+SIPGenerator.prototype._createSIP = function(sip, finish_cb) {
     console.log('[SIPGenerator::_createSIP] creating SIP...');
 
     // java -jar server/executables/sipgen/SIP_Generator/run/eARDsip.jar 6e2e1358-f979-4c1d-afb3-09635b575370
 
     var exec_path = 'java',
         sip_jar = path.join(this._appRoot, 'server', 'executables', 'sipgen', 'SIP_Generator', 'run', 'eARDsip.jar'),
-        sip_path = path.join(this._appRoot, 'server', 'executables', 'sipgen', 'SIP_Generator', 'sip', session.uuid + '.zip'),
-        public_path = path.join(this._appRoot, '.tmp', 'public', session.uuid + '.zip'),
-        options = '-jar ' + sip_jar + ' ' + session.uuid,
+        sip_path = path.join(this._appRoot, 'server', 'executables', 'sipgen', 'SIP_Generator', 'sip', sip.uuid + '.zip'),
+        public_path = path.join(this._appRoot, '.tmp', 'public', sip.uuid + '.zip'),
+        options = '-jar ' + sip_jar + ' ' + sip.uuid,
         that = this;
 
     console.log('[SIPGenerator::identify] About to execute: ' + exec_path + ' ' + options);
@@ -132,7 +171,7 @@ SIPGenerator.prototype._createSIP = function(session, finish_cb) {
 
     executable.on('close', function() {
         that._copyFile(sip_path, public_path, function() {
-            var relative_www_path = '/' + session.uuid + '.zip';
+            var relative_www_path = '/' + sip.uuid + '.zip';
             finish_cb(relative_www_path);
         })
     })
