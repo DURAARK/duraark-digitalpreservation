@@ -23,10 +23,13 @@ RDFTranslator.prototype.extractFromJSONLD = function(jsonLd, from, to, cb) {
 
 
     request.post({
-        url: query, 
-        form: { content: JSON.stringify(jsonLd)}}, 
-        function(err,httpResponse,body){ 
+            url: query,
+            form: {
+                content: JSON.stringify(jsonLd)
+            }
+        },
+        function(err, httpResponse, body) {
             cb(body);
-     });
+        });
 
 };

@@ -17,9 +17,21 @@ module.exports = {
         var body = req.body;
         var session = body.sessions[0];
         var physicalAsset = session.physicalAssets[0];
-        var buildm = session.buildm[0];
+        var buildm = session.buildm;
 
-        var sessionPath = path.join(homeDir, 'session_' + path.basename(buildm['@id']));
+        var pa = _.filter(buildm, function(instance) {
+            //console.log(JSON.stringify(instance, null, 4));
+            if (instance['@type'].length){
+            	console.log(JSON.stringify(instance['@type'][0], null, 4));
+                return instance['@type'][0] == "http://data.duraark.eu/vocab/PhysicalAsset";
+            }
+        });
+        if (!pa) {
+            return res.send(500, 'Could not find pysical asset in session');
+        }
+
+
+        var sessionPath = path.join(homeDir, 'session_' + path.basename(pa[0]['@id']));
 
         _.forEach(physicalAsset.digitalObjects, function(da, key) {
             var folder = key + 1;
