@@ -3,7 +3,13 @@
   "private": false,
   "version": "0.5.0",
   "description": "Microservice providing an API for generating submission information packages (SIPs).",
-  "keywords": ["duraark", "api", "microservice", "long-time-preservation", "sailsjs"],
+  "keywords": [
+    "duraark",
+    "api",
+    "microservice",
+    "long-time-preservation",
+    "sailsjs"
+  ],
   "dependencies": {
     "ejs": "~0.8.4",
     "grunt": "0.4.2",
@@ -19,8 +25,10 @@
     "grunt-sails-linker": "~0.9.5",
     "grunt-sync": "~0.0.4",
     "include-all": "~0.1.3",
+    "mkdirp": "^0.5.1",
     "node-uuid": "^1.4.3",
     "rc": "~0.5.0",
+    "request": "^2.58.0",
     "sails": "~0.10.2",
     "sails-disk": "~0.10.0",
     "sqlite3": "^3.0.5",
