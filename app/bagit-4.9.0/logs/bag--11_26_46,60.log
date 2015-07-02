@@ -1,0 +1,35 @@
+2015-07-02 11:26:46,869 [main] INFO  CommandLineBagDriver : Performing operation: create
+2015-07-02 11:26:46,870 [main] INFO  CommandLineBagDriver : Performing operation: create
+2015-07-02 11:26:46,912 [main] INFO  DefaultCompleter : Completing bag at null
+2015-07-02 11:26:46,930 [main] INFO  DefaultCompleter : Completing bag at null
+2015-07-02 11:26:47,030 [main] INFO  ZipWriter : Writing bag
+2015-07-02 11:26:47,034 [main] INFO  ZipWriter : Writing bag
+2015-07-02 11:26:47,116 [main] ERROR TempFileHelper : Error moving \tmp\bag.zip.biltemp to \tmp\bag.zip: Source '\tmp\bag.zip.biltemp' does not exist
+2015-07-02 11:26:47,117 [main] ERROR CommandLineBagDriver : Error: Error moving \tmp\bag.zip.biltemp to \tmp\bag.zip: Source '\tmp\bag.zip.biltemp' does not exist
+java.lang.RuntimeException: Error moving \tmp\bag.zip.biltemp to \tmp\bag.zip: Source '\tmp\bag.zip.biltemp' does not exist
+	at gov.loc.repository.bagit.utilities.TempFileHelper.switchTemp(TempFileHelper.java:42)
+	at gov.loc.repository.bagit.writer.impl.AbstractWriter.switchTemp(AbstractWriter.java:47)
+	at gov.loc.repository.bagit.writer.impl.ZipWriter.endBag(ZipWriter.java:91)
+	at gov.loc.repository.bagit.impl.AbstractBag.accept(AbstractBag.java:468)
+	at gov.loc.repository.bagit.writer.impl.ZipWriter.write(ZipWriter.java:158)
+	at gov.loc.repository.bagit.impl.AbstractBag.write(AbstractBag.java:526)
+	at gov.loc.repository.bagit.driver.CommandLineBagDriver.performOperation(CommandLineBagDriver.java:888)
+	at gov.loc.repository.bagit.driver.CommandLineBagDriver.execute(CommandLineBagDriver.java:413)
+	at gov.loc.repository.bagit.driver.CommandLineBagDriver.main(CommandLineBagDriver.java:154)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+	at java.lang.reflect.Method.invoke(Unknown Source)
+	at org.codehaus.classworlds.Launcher.launchStandard(Launcher.java:353)
+	at org.codehaus.classworlds.Launcher.launch(Launcher.java:264)
+	at org.codehaus.classworlds.Launcher.mainWithExitCode(Launcher.java:430)
+	at org.codehaus.classworlds.Launcher.main(Launcher.java:375)
+Caused by: java.io.FileNotFoundException: Source '\tmp\bag.zip.biltemp' does not exist
+	at org.apache.commons.io.FileUtils.copyFile(FileUtils.java:1074)
+	at org.apache.commons.io.FileUtils.copyFile(FileUtils.java:1038)
+	at org.apache.commons.io.FileUtils.moveFile(FileUtils.java:2832)
+	at gov.loc.repository.bagit.utilities.TempFileHelper.switchTemp(TempFileHelper.java:38)
+	... 16 more
+2015-07-02 11:26:47,119 [main] INFO  CommandLineBagDriver : Returning 2
+2015-07-02 11:26:47,136 [main] INFO  CommandLineBagDriver : Operation completed.
+2015-07-02 11:26:47,137 [main] INFO  CommandLineBagDriver : Returning 0

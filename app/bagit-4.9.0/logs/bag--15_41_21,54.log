@@ -1,0 +1,5 @@
+2015-07-02 15:41:21,791 [main] INFO  CommandLineBagDriver : Performing operation: create
+2015-07-02 15:41:21,820 [main] INFO  DefaultCompleter : Completing bag at null
+2015-07-02 15:41:21,902 [main] INFO  ZipWriter : Writing bag
+2015-07-02 15:41:22,007 [main] INFO  CommandLineBagDriver : Operation completed.
+2015-07-02 15:41:22,007 [main] INFO  CommandLineBagDriver : Returning 0
