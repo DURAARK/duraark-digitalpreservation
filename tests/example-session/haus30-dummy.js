@@ -1,4 +1,8 @@
 {
+  "output": {
+    "type": "bag",
+    "path": "/tmp/bag.zip"
+  },
     "sessions": [
         {
             "label": "Haus 30",
