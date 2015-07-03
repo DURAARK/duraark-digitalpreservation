@@ -57,7 +57,7 @@ function symLinktoDerivates(opts) {
             var derivatesTargetFilePath = path.join(opts.derivativePath, path.basename(derivatesSourceFilePath));
 
             fs.link(derivatesSourceFilePath, derivatesTargetFilePath, function() {
-              resolve();
+              resolve(opts);
             });
         });
     }).then(function () {
@@ -77,15 +77,19 @@ function createBuilMXML(opts) {
 
 
       fs.writeFile(path.join(opts.sourceMDPath, 'buildm.xml'), data, function(err) {
-        resolve();
+        resolve(opts);
       });
   });
 });
 }
 
-function createBagIt() {
-  var bagit = new BagIt('/tmp/session_physicalasset_d86c761c42e440659a8a5b945f695b76', '/tmp/bag.zip');
+function createBagIt(bagItOpts, cb) {
+  //console.log(JSON.stringify(bagItOpts, null, 4));
+  console.log("ConverterControler::Bag it");
+
+  var bagit = new BagIt(bagItOpts.source, bagItOpts.target);
   bagit.bagIt(function(){
+    cb();
   });
 
 }
@@ -111,6 +115,11 @@ module.exports = {
 
         var sessionPath = path.join(homeDir, 'session_' + path.basename(pa[0]['@id']));
 
+        var bagItOpts ={
+          source: sessionPath,
+          target: path.join(homeDir, 'bag.zip')
+        };
+
         Promise.each(physicalAsset.digitalObjects, function(digitalObject, index, value){
 
           var folder = index + 1;
@@ -126,30 +135,20 @@ module.exports = {
           };
 
 
+
           return newFolderStructure(opts)
           .then(symLinkToIFC)
           .then(symLinktoDerivates)
           .then(createBuilMXML);
-        }).then(createBagIt);
-
-
-/*
-          return newFolderStructure(opts)
-          .then(function (){
-            return symLinkToIFC(opts);
-          }).then(function (derivatives){
-            return Promise.each(derivatives, function (derivativeObject) {
-              return symLinktoDerivates(derivativeObject, opts);
-            });
-          }).then(function () {
-            return createBuilMXML(opts);
-          });
         }).then(function () {
-          return createBagIt();
+          if(body.output.type =='bag')
+          {
+            createBagIt(bagItOpts,function () {
+              res.send(200, 'bagged it');
+            });
+          }
         });
 
-
-*/
         /*_.forEach(physicalAsset.digitalObjects, function(da, key) {
             var folder = key + 1;
             var sipPath = path.join(sessionPath, 'ie_id' + folder);
