@@ -13,9 +13,11 @@ RUN sudo npm install sails -g
 
 RUN apt-get -y install openjdk-7-jdk
 
+RUN mkdir -p /duraark/microservice
+
 # Bundle app, install, expose and finally run it
-COPY ./ /microservice
-WORKDIR /microservice
+COPY ./ /duraark/microservice
+WORKDIR /duraark/microservice
 EXPOSE 5015
 
 RUN npm install
