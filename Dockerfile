@@ -16,7 +16,7 @@ RUN apt-get -y install openjdk-7-jdk
 # Bundle app, install, expose and finally run it
 COPY ./ /microservice
 WORKDIR /microservice
-EXPOSE 5007
+EXPOSE 5015
 
 RUN npm install
 
