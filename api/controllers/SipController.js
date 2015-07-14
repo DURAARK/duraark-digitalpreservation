@@ -1,27 +1,31 @@
 /**
-* SipController
-*
-* @description :: Server-side logic for managing SIP
-* @help        :: See http://links.sailsjs.org/docs/controllers
-*/
+ * SipController
+ *
+ * @description :: Server-side logic for managing SIP
+ * @help        :: See http://links.sailsjs.org/docs/controllers
+ */
 
 var Promise = require("bluebird"),
-RDFTranslator = require('../../bindings/rdf-translator/app'),
-BagIt = require('../../bindings/bagit/app'),
-fs = Promise.promisifyAll(require('fs')),
-path = require('path'),
-mkdirp = require('mkdirp'),
-_ = require('lodash');
+  RDFTranslator = require('../../bindings/rdf-translator/app'),
+  BagIt = require('../../bindings/bagit/app'),
+  Jsonld2xml = require('../../bindings/jsonld2xml/app'),
+  fs = Promise.promisifyAll(require('fs-extra')),
+  path = require('path'),
+  mkdirp = require('mkdirp'),
+  _ = require('underscore');
 
-var homeDir = '/tmp' ;
+var homeDir = '/tmp';
 
 function newFolderStructure(opts) {
   return new Promise(function(resolve, reject) {
-    console.log("ConverterControler::Creating directories");
+    console.log("ConverterController::Creating directories");
 
     mkdirp(opts.masterPath, function(err) {
+      if (err) return reject(err);
       mkdirp(opts.derivativePath, function(err) {
+        if (err) return reject(err);
         mkdirp(opts.sourceMDPath, function(err) {
+          if (err) return reject(err);
           resolve(opts);
         });
       });
@@ -33,13 +37,13 @@ function newFolderStructure(opts) {
 function symLinkToIFC(opts) {
   return new Promise(function(resolve, reject) {
 
-    console.log("ConverterControler::Symlink to IFC");
+    console.log("ConverterController::Symlink to IFC");
 
     var sourceIFCPath = opts.digitalObject.path;
     var targetIFCPath = path.join(opts.masterPath, path.basename(sourceIFCPath));
 
-
-    fs.link(sourceIFCPath, targetIFCPath, function() {
+    fs.link(sourceIFCPath, targetIFCPath, function(err) {
+      if (err) return reject(err);
       //console.log(JSON.stringify(opts.digitalObject.derivatives, null, 4));
       resolve(opts);
     });
@@ -48,19 +52,26 @@ function symLinkToIFC(opts) {
 
 function symLinktoDerivates(opts) {
 
-  return Promise.each(opts.digitalObject.derivatives, function (derivativeObject) {
-    return new Promise(function(resolve, reject) {
+  var promises = [];
 
-      console.log("ConverterControler::Symlink to derivates");
+  _.forEach(opts.digitalObject.derivatives, function(derivativeObject) {
+
+    var promise = new Promise(function(resolve, reject) {
+      console.log("ConverterController::Symlink to derivates");
 
       var derivatesSourceFilePath = derivativeObject.path;
       var derivatesTargetFilePath = path.join(opts.derivativePath, path.basename(derivatesSourceFilePath));
 
-      fs.link(derivatesSourceFilePath, derivatesTargetFilePath, function() {
+      fs.link(derivatesSourceFilePath, derivatesTargetFilePath, function(err) {
+        if (err) return reject(err);
         resolve(opts);
       });
     });
-  }).then(function () {
+
+    promises.push(promise);
+
+  });
+  return Promise.all(promises).then(function() {
     return opts;
   });
 }
@@ -68,27 +79,25 @@ function symLinktoDerivates(opts) {
 function createBuilMXML(opts) {
   return new Promise(function(resolve, reject) {
 
+    // console.log("[ConverterController::Creating buildm.xml] buildm: " + JSON.stringify(opts.buildm, null, 4));
+    var jsonld2xml = new Jsonld2xml();
 
-    console.log("ConverterControler::Creating buildm.xml");
-    var rdf = new RDFTranslator();
+    var buildmXML = jsonld2xml.toXML(opts.buildm);
 
-    rdf.extractFromJSONLD(opts.buildm, "json-ld", "xml", function(data) {
-      console.log("ConverterControler::Writing buildm.xml");
+    console.log("[ConverterController::Writing buildm.xml] XML:\n\n" + buildmXML);
 
-
-      fs.writeFile(path.join(opts.sourceMDPath, 'buildm.xml'), data, function(err) {
-        resolve(opts);
-      });
+    fs.writeFile(path.join(opts.sourceMDPath, 'buildm.xml'), buildmXML, function(err) {
+      resolve(opts);
     });
   });
 }
 
 function createBagIt(bagItOpts, cb) {
   //console.log(JSON.stringify(bagItOpts, null, 4));
-  console.log("ConverterControler::Bag it");
+  console.log("ConverterController::Bag it");
 
   var bagit = new BagIt(bagItOpts.source, bagItOpts.target);
-  bagit.bagIt(function(){
+  bagit.bagIt(function() {
     cb();
   });
 
@@ -96,113 +105,67 @@ function createBagIt(bagItOpts, cb) {
 
 module.exports = {
   create: function(req, res, next) {
-    var body = req.body;
-    var session = body.sessions[0];
-    var physicalAsset = session.physicalAssets[0];
-    var buildm = session.buildm;
 
-    var pa = _.filter(buildm, function(instance) {
-      //console.log(JSON.stringify(instance, null, 4));
-      if (instance['@type'].length){
-        console.log(JSON.stringify(instance['@type'][0], null, 4));
-        return instance['@type'][0] == "http://data.duraark.eu/vocab/PhysicalAsset";
-      }
-    });
-    if (!pa) {
-      return res.send(500, 'Could not find pysical asset in session');
-    }
+    // console.log('body: ' + JSON.stringify(req.body, null, 4));
 
+    var session = req.body.session,
+      output = req.body.output,
+      physicalAsset = session.physicalAssets[0],
+      digitalObjects = session.digitalObjects,
+      paBuildm = physicalAsset.buildm;
 
-    var sessionPath = path.join(homeDir, 'session_' + path.basename(pa[0]['@id']));
+    // console.log('buildm: ' + JSON.stringify(buildm, null, 4));
 
-    var bagItOpts ={
-      source: sessionPath,
-      target: path.join(homeDir, 'bag.zip')
-    };
+    var sessionPath = path.join(homeDir, 'session_' + path.basename(paBuildm['@id'])),
+      bagItOpts = {
+        source: sessionPath,
+        target: path.join(homeDir, 'bag.zip')
+      },
+      promises = [];
 
-    Promise.each(physicalAsset.digitalObjects, function(digitalObject, index, value){
+    console.log('sessionPath: ' + sessionPath);
 
+    // Remove eventual existing directory:
+    fs.removeSync(sessionPath);
+
+    _.forEach(digitalObjects, function(digitalObject, index, value) {
       var folder = index + 1;
       var sipPath = path.join(sessionPath, 'ie_id' + folder);
 
+      var sourceMD = [];
+      sourceMD.push(paBuildm);
+      sourceMD.push(digitalObject.buildm);
+
+      // console.log('body: ' + JSON.stringify(sourceMD, null, 4));
+
       var opts = {
-        buildm : buildm,
+        buildm: sourceMD,
         digitalObject: digitalObject,
-        sipPath : sipPath,
-        masterPath : path.join(sipPath, 'master'),
-        derivativePath : path.join(sipPath, 'derivative_copy'),
-        sourceMDPath : path.join(sipPath, 'sourcemd'),
+        sipPath: sipPath,
+        masterPath: path.join(sipPath, 'master'),
+        derivativePath: path.join(sipPath, 'derivative_copy'),
+        sourceMDPath: path.join(sipPath, 'sourcemd'),
       };
 
-
-
-      return newFolderStructure(opts)
-      .then(symLinkToIFC)
-      .then(symLinktoDerivates)
-      .then(createBuilMXML);
-
-    }).then(function () {
-      if(body.output.type =='bag')
-      {
-        createBagIt(bagItOpts,function () {
-          res.send(200, 'bagged it');
-        });
-      }
+      promises.push(newFolderStructure(opts)
+        .then(symLinkToIFC)
+        .then(symLinktoDerivates)
+        .then(createBuilMXML));
     });
 
-    /*_.forEach(physicalAsset.digitalObjects, function(da, key) {
-    var folder = key + 1;
-    var sipPath = path.join(sessionPath, 'ie_id' + folder);
-    var masterPath = path.join(sipPath, 'master');
-    var derivativePath = path.join(sipPath, 'derivative_copy');
-    var sourceMDPath = path.join(sipPath, 'sourcemd');
-
-    //create needed directories
-    console.log("ConverterControler::Creating directories");
-    mkdirp(masterPath, function(err) {
-    mkdirp(derivativePath, function(err) {
-    mkdirp(sourceMDPath, function(err) {
-    console.log("ConverterControler::Symlink to IFC");
-
-    var sourceIFCPath = da.path;
-    var targetIFCPath = path.join(masterPath, path.basename(sourceIFCPath));
-
-    fs.link(sourceIFCPath, targetIFCPath, function() {
-    console.log("ConverterControler::Symlink to derivates");
-    _.forEach(da.derivatives, function(n, key) {
-
-    var derivatesSourceFilePath = n.path;
-    var derivatesTargetFilePath = path.join(derivativePath, path.basename(derivatesSourceFilePath));
-
-    fs.link(derivatesSourceFilePath, derivatesTargetFilePath, function() {
-
-  });
-});
-
-console.log("ConverterControler::Createing buildm.xml");
-var rdf = new RDFTranslator();
-
-rdf.extractFromJSONLD(buildm, "json-ld", "xml", function(data) {
-console.log("ConverterControler::Writing buildm.xml");
-
-fs.writeFile(path.join(sourceMDPath, 'buildm.xml'), data, function(err) {
-//return resolve();
-//res.send(data);
-
-});
-});
-
-});
-});
-});
-});
-}).then(function(){
-
-console.log("ConverterControler::bag it");
-var bagit = new BagIt('/tmp/session_physicalasset_d86c761c42e440659a8a5b945f695b76', '/tmp/bag.zip');
-bagit.bagIt(function(){
-
-});
-});*/
-}
+    // return;
+    Promise.all(promises).then(function() {
+      if (output.type == 'bag') {
+        createBagIt(bagItOpts, function() {
+          return res.send(200, 'bagged it');
+        });
+      } else {
+        return res.send(200, sessionPath);
+      }
+    }).catch(function(err) {
+      console.log('error');
+      throw new Error(err);
+      return res.send(500, err);
+    });
+  }
 };

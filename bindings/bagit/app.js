@@ -3,7 +3,7 @@ var spawn = require('child_process').spawn,
     path = require('path'),
     fs = require('fs'),
     mkdirp = require('mkdirp'),
-    _ = require('lodash');
+    _ = require('underscore');
 
 var sourceDir;
 var output;
