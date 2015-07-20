@@ -8,6 +8,7 @@
 var Promise = require("bluebird"),
   RDFTranslator = require('../../bindings/rdf-translator/app'),
   BagIt = require('../../bindings/bagit/app'),
+  Rosetta = require('../../bindings/rosetta/app'),
   Jsonld2xml = require('../../bindings/jsonld2xml/app'),
   fs = Promise.promisifyAll(require('fs-extra')),
   path = require('path'),
@@ -99,16 +100,22 @@ function createBagIt(bagItOpts, cb) {
   var bagit = new BagIt(bagItOpts.source, bagItOpts.target);
   bagit.bagIt(function() {
     cb();
-  });
+  });  
+}
 
+function createRosetta (rosettaOpts, cb) {
+  var rosetta = new Rosetta();
+  rosetta.start(rosettaOpts.source, rosettaOpts.target, function(output){
+    cb(output);
+  })
 }
 
 module.exports = {
   create: function(req, res, next) {
 
-    // console.log('body: ' + JSON.stringify(req.body, null, 4));
+     console.log('body: ' + JSON.stringify(req.body.session, null, 4));
 
-    var session = req.body.session,
+    var session = req.body.session[0],
       output = req.body.output,
       physicalAsset = session.physicalAssets[0],
       digitalObjects = session.digitalObjects,
@@ -117,9 +124,8 @@ module.exports = {
     // console.log('buildm: ' + JSON.stringify(buildm, null, 4));
 
     var sessionPath = path.join(homeDir, 'session_' + path.basename(paBuildm['@id'])),
-      bagItOpts = {
+      opts = {
         source: sessionPath,
-        target: path.join(homeDir, 'bag.zip')
       },
       promises = [];
 
@@ -156,11 +162,17 @@ module.exports = {
     // return;
     Promise.all(promises).then(function() {
       if (output.type == 'bag') {
-        createBagIt(bagItOpts, function() {
+        opts.target = path.join(homeDir, 'bag.zip')
+
+        createBagIt(opts, function() {
           return res.send(200, 'bagged it');
         });
-      } else {
-        return res.send(200, sessionPath);
+      } else if(output.type == 'rosetta') {
+
+        opts.target = output.path
+        createRosetta(opts, function(output){
+          return res.send(200, 'rosetta finished directory: ' + output);
+        })
       }
     }).catch(function(err) {
       console.log('error');
