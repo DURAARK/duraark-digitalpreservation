@@ -20,6 +20,7 @@ var BagIt = module.exports = function(sourceDir, output) {
 
 BagIt.prototype.bagIt = function(cb) {
 
+    var targetOutput = this.output;
     console.log('[BagIt::createElecDetection] configuration: ' + JSON.stringify(this.output, null, 4));
 
     // TODO: change to session directory here?
@@ -44,6 +45,6 @@ BagIt.prototype.bagIt = function(cb) {
       executable.on('close', function(code) {
           console.log('[BagIt-binding] child process exited with code ' + code);
 
-          cb();
+          cb(targetOutput);
       }.bind(this));
 };

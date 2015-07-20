@@ -98,8 +98,8 @@ function createBagIt(bagItOpts, cb) {
   console.log("ConverterController::Bag it");
 
   var bagit = new BagIt(bagItOpts.source, bagItOpts.target);
-  bagit.bagIt(function() {
-    cb();
+  bagit.bagIt(function(output) {
+    cb(output);
   });  
 }
 
@@ -162,10 +162,10 @@ module.exports = {
     // return;
     Promise.all(promises).then(function() {
       if (output.type == 'bag') {
-        opts.target = path.join(homeDir, 'bag.zip')
+        opts.target = path.join(output.path, 'bag.zip')
 
-        createBagIt(opts, function() {
-          return res.send(200, 'bagged it');
+        createBagIt(opts, function(output) {
+          return res.send(200, 'bagged it: ' + output);
         });
       } else if(output.type == 'rosetta') {
 

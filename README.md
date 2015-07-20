@@ -10,26 +10,36 @@ A showcasing demo incorporating the service running on our [development system](
 
 The deployment setup is based on the repository [microservice-base](https://github.com/DURAARK/microservice-base). It provides development scripts and docker deployment. Have a look at the link to get more detailed information.
 
-### POST http://localhost:5007/sip/build
+### POST http://localhost:5015/Sip
 
 ### Description
 
-Creates a SIP container with the given files and returns a download URL.
+Creates a SIP container with the given files and respond the output directory.
 
 #### Payload
 
 ```json  
 {
-  "files": [ { "path": "/tmp/file.ifc" } ]
+  "output": {
+    "type": "rosetta OR bag", 
+    "path": "path to your output eg.: /tmp/myDir"
+  },
+    "session": [
+        {
+	    	"label": "Haus 30 Session (your Workbench!)",
+	    	... your session
+    	}
+    ]
 }
+
 ```
 
 #### Response
 
-```json
-{
-	"url": "http://localhost:5007/sip.zip" 
-}
-```
+output if bag: 
+bagged it: /tmp/myDir/bag.zip
+
+output if rosetta:
+rosetta finished directory: /tmp/myDir
 
 Enjoy!
