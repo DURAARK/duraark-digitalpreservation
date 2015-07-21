@@ -58,7 +58,7 @@ function symLinktoDerivates(opts) {
   _.forEach(opts.digitalObject.derivatives, function(derivativeObject) {
 
     var promise = new Promise(function(resolve, reject) {
-      console.log("ConverterController::Symlink to derivates");
+      console.log("[ConverterController::symLinktoDerivates]");
 
       var derivatesSourceFilePath = derivativeObject.path;
       var derivatesTargetFilePath = path.join(opts.derivativePath, path.basename(derivatesSourceFilePath));
@@ -70,8 +70,8 @@ function symLinktoDerivates(opts) {
     });
 
     promises.push(promise);
-
   });
+
   return Promise.all(promises).then(function() {
     return opts;
   });
@@ -85,7 +85,7 @@ function createBuilMXML(opts) {
 
     var buildmXML = jsonld2xml.toXML(opts.buildm);
 
-    console.log("[ConverterController::Writing buildm.xml] XML:\n\n" + buildmXML);
+    console.log("[ConverterController::createBuilMXML]");
 
     fs.writeFile(path.join(opts.sourceMDPath, 'buildm.xml'), buildmXML, function(err) {
       resolve(opts);
@@ -93,27 +93,28 @@ function createBuilMXML(opts) {
   });
 }
 
-function createBagIt(bagItOpts, cb) {
+function createBagIt(bagItOpts) {
   //console.log(JSON.stringify(bagItOpts, null, 4));
   console.log("ConverterController::Bag it");
 
-  var bagit = new BagIt(bagItOpts.source, bagItOpts.target);
-  bagit.bagIt(function(output) {
-    cb(output);
-  });  
+  return new Promise(function(resolve, reject) {
+    var bagit = new BagIt(bagItOpts.source, bagItOpts.target);
+    resolve(bagit.bagIt());
+  });
 }
 
-function createRosetta (rosettaOpts, cb) {
-  var rosetta = new Rosetta();
-  rosetta.start(rosettaOpts.source, rosettaOpts.target, function(output){
-    cb(output);
-  })
+function createRosetta(rosettaOpts, cb) {
+  console.log("ConverterController::createRosetta");
+  return new Promise(function(resolve, reject) {
+    var rosetta = new Rosetta();
+    resolve(rosetta.start(rosettaOpts.source, rosettaOpts.target));
+  });
 }
 
 module.exports = {
   create: function(req, res, next) {
 
-     console.log('body: ' + JSON.stringify(req.body.session, null, 4));
+    //console.log('body: ' + JSON.stringify(req.body.session, null, 4));
 
     var session = req.body.session[0],
       output = req.body.output,
@@ -129,7 +130,7 @@ module.exports = {
       },
       promises = [];
 
-    console.log('sessionPath: ' + sessionPath);
+    //console.log('sessionPath: ' + sessionPath);
 
     // Remove eventual existing directory:
     fs.removeSync(sessionPath);
@@ -159,24 +160,23 @@ module.exports = {
         .then(createBuilMXML));
     });
 
-    // return;
     Promise.all(promises).then(function() {
       if (output.type == 'bag') {
-        opts.target = path.join(output.path, 'bag.zip')
+        opts.target = path.join(output.path, 'bag.zip');
 
-        createBagIt(opts, function(output) {
-          return res.send(200, 'bagged it: ' + output);
+        createBagIt(opts)
+          .then(function(output) {
+            res.send(200, 'bagit finished created: ' + output);
+          });
+      } else if (output.type == 'rosetta') {
+        opts.target = output.path;
+        createRosetta(opts)
+        .then(function(output) {
+          return res.send(200, 'rosetta finished created: ' + output);
         });
-      } else if(output.type == 'rosetta') {
-
-        opts.target = output.path
-        createRosetta(opts, function(output){
-          return res.send(200, 'rosetta finished directory: ' + output);
-        })
       }
     }).catch(function(err) {
-      console.log('error');
-      throw new Error(err);
+      console.log('error' + err);
       return res.send(500, err);
     });
   }
