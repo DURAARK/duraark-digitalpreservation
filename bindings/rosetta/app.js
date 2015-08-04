@@ -1,4 +1,5 @@
 var spawn = require('child_process').spawn,
+  Promise = require('bluebird'),
   uuid = require('node-uuid'),
   path = require('path'),
   fs = require('fs'),
@@ -16,16 +17,19 @@ Rosetta.prototype.start = function(sourceDir, output) {
   return new Promise(function(resolve, reject) {
     console.log('[Rosetta::start] creating output Dir');
     mkdirp(output, function(err) {
-      if(err) return reject(err);
+      if (err) return reject(err);
 
       var cwd = process.cwd();
       process.chdir(rosettaExecutable);
 
       //JAVA -jar SIP _Generator.jar D:\input D:\output /exlibris1/transfer/tib_duraark
-      var args = [sourceDir, output];
+      var args = [sourceDir, output, '/exlibris1/transfer/tib_duraark'],
+        executable = path.join(rosettaExecutable, 'SIP_Generator.jar');
+      console.log('asdf: ' + executable);
+      console.log('sourceDir: ' + sourceDir);
+      console.log('output: ' + output);
 
-      var executable = spawn(path.join(rosettaExecutable, 'sip_generator.bat '), args);
-
+      var executable = spawn('java', ['-jar', executable, sourceDir, output, '/exlibris1/transfer/tib_duraark']);
       executable.stdout.on('data', function(data) {
         console.log(data.toString());
       });
@@ -35,8 +39,7 @@ Rosetta.prototype.start = function(sourceDir, output) {
       });
 
       executable.on('close', function(code) {
-        if(code !== 0)
-        {
+        if (code !== 0) {
           console.log('[Rosetta::start] child process exited with code ' + code);
           return reject('[Rosetta::start] child process exited with code ' + code);
         }
