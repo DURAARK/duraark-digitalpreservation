@@ -6,13 +6,13 @@
  */
 
 var Promise = require("bluebird"),
-  RDFTranslator = require('../../bindings/rdf-translator/app'),
   BagIt = require('../../bindings/bagit/app'),
   Rosetta = require('../../bindings/rosetta/app'),
   Jsonld2xml = require('../../bindings/jsonld2xml/app'),
   fs = Promise.promisifyAll(require('fs-extra')),
   path = require('path'),
   mkdirp = require('mkdirp'),
+  UUID = require('node-uuid'),
   _ = require('underscore');
 
 var homeDir = '/tmp';
@@ -43,7 +43,8 @@ function symLinkToIFC(opts) {
     var sourceIFCPath = opts.digitalObject.path;
     var targetIFCPath = path.join(opts.masterPath, path.basename(sourceIFCPath));
 
-    fs.link(sourceIFCPath, targetIFCPath, function(err) {
+    // fs.link(sourceIFCPath, targetIFCPath, function(err) {
+    fs.copy(sourceIFCPath, targetIFCPath, function(err) {
       if (err) return reject(err);
       //console.log(JSON.stringify(opts.digitalObject.derivatives, null, 4));
       resolve(opts);
@@ -63,7 +64,7 @@ function symLinktoDerivates(opts) {
       var derivatesSourceFilePath = derivativeObject.path;
       var derivatesTargetFilePath = path.join(opts.derivativePath, path.basename(derivatesSourceFilePath));
 
-      fs.link(derivatesSourceFilePath, derivatesTargetFilePath, function(err) {
+      fs.copy(derivatesSourceFilePath, derivatesTargetFilePath, function(err) {
         if (err) return reject(err);
         resolve(opts);
       });
@@ -80,12 +81,12 @@ function symLinktoDerivates(opts) {
 function createBuilMXML(opts) {
   return new Promise(function(resolve, reject) {
 
-    // console.log("[ConverterController::Creating buildm.xml] buildm: " + JSON.stringify(opts.buildm, null, 4));
+    console.log("[ConverterController::Creating buildm.xml] buildm: " + JSON.stringify(opts.buildm, null, 4));
     var jsonld2xml = new Jsonld2xml();
 
     var buildmXML = jsonld2xml.toXML(opts.buildm);
 
-    console.log("[ConverterController::createBuilMXML]");
+    console.log("[ConverterController::createBuilMXML]: " + opts.sourceMDPath);
 
     fs.writeFile(path.join(opts.sourceMDPath, 'buildm.xml'), buildmXML, function(err) {
       resolve(opts);
@@ -114,7 +115,7 @@ function createRosetta(rosettaOpts, cb) {
 module.exports = {
   create: function(req, res, next) {
 
-    //console.log('body: ' + JSON.stringify(req.body.session, null, 4));
+    console.log('body: ' + JSON.stringify(req.body.session, null, 4));
 
     var session = req.body.session[0],
       output = req.body.output,
@@ -162,18 +163,32 @@ module.exports = {
 
     Promise.all(promises).then(function() {
       if (output.type == 'bag') {
-        opts.target = path.join(output.path, 'bag.zip');
+        var uuid = UUID.v4();
+        opts.target = path.join(homeDir, uuid, 'bag.zip');
 
         createBagIt(opts)
-          .then(function(output) {
-            res.send(200, 'bagit finished created: ' + output);
+          .then(function(outputPath) {
+            console.log('Created output at: ' + outputPath);
+
+            var url = outputPath.replace('/tmp/', '/public/');
+            
+            return res.send({
+              url: url
+            }).status(200);
           });
       } else if (output.type == 'rosetta') {
-        opts.target = output.path;
+        var uuid = UUID.v4();
+        opts.target = path.join(homeDir, uuid);
         createRosetta(opts)
-        .then(function(output) {
-          return res.send(200, 'rosetta finished created: ' + output);
-        });
+          .then(function(outputPath) {
+            console.log('Created output at: ' + outputPath);
+
+            var url = outputPath.replace('/tmp/', '/public/');
+
+            res.send({
+              url: url
+            }).status(200);
+          });
       }
     }).catch(function(err) {
       console.log('error' + err);

@@ -10,7 +10,7 @@ var Jsonld2xml = module.exports = function() {}
 
 Jsonld2xml.prototype.toXML = function(jsonLd) {
   // console.log('[Jsonld2xml::toXML] : ' + JSON.stringify(jsonLd, null, 4));
-
+debugger;
   var xml = '<?xml version="1.0" encoding="UTF-8"?>\n<buildm>\n';
 
   _.forEach(jsonLd, function(item) {
@@ -28,6 +28,8 @@ Jsonld2xml.prototype.toXML = function(jsonLd) {
       console.log('DIGITALOBJECT');
       elementStart = '\n<digitalObject>'
       elementEnd = '\n</digitalObject>'
+    } else {
+      throw new Error('[Jsonld2xml] Unkown buildm type. Exiting...');
     }
 
     xml += elementStart;
