@@ -10,7 +10,8 @@ var Jsonld2xml = module.exports = function() {}
 
 Jsonld2xml.prototype.toXML = function(jsonLd) {
   // console.log('[Jsonld2xml::toXML] : ' + JSON.stringify(jsonLd, null, 4));
-debugger;
+  var hasDate = false;
+
   var xml = '<?xml version="1.0" encoding="UTF-8"?>\n<buildm>\n';
 
   _.forEach(jsonLd, function(item) {
@@ -21,11 +22,9 @@ debugger;
     // console.log('type: ' + type);
 
     if (type === 'http://data.duraark.eu/vocab/PhysicalAsset') {
-      console.log('PHYSICALASSET:');
       elementStart = '<physicalAsset>';
       elementEnd = '\n</physicalAsset>';
     } else if (type === 'http://data.duraark.eu/vocab/IFCSPFFile' || type === 'http://data.duraark.eu/vocab/E57File') {
-      console.log('DIGITALOBJECT');
       elementStart = '\n<digitalObject>'
       elementEnd = '\n</digitalObject>'
     } else {
@@ -36,6 +35,7 @@ debugger;
 
     _.forEach(item, function(value, key) {
       if (key !== '@id' && key !== '@type') {
+        hasDate = key === 'dateCreated' ? true : false; // <dateCreated> is mandatory for the SIP Generator, so we create it in any case
         var prop = key.split('/').pop();
 
         // console.log('key: ' + prop);
@@ -69,6 +69,10 @@ debugger;
       }
     });
 
+    if (elementStart === '\n<digitalObject>' && !hasDate) {
+      var date = new Date();
+      xml += '\n  <dateCreated>' + date.toISOString() + '</dateCreated>\n';
+    }
     xml += elementEnd;
   });
 
