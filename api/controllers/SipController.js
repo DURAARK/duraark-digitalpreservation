@@ -113,6 +113,50 @@ function createRosetta(rosettaOpts, cb) {
 }
 
 module.exports = {
+
+  /**
+   * @api {post} /sip Create BagIt SIP
+   * @apiVersion 0.7.0
+   * @apiName PostBagItSIP
+   * @apiGroup DigitalPreservation
+   * @apiPermission none
+   *
+   * @apiDescription Creates a new Submission Information Package (SIP) in the [BagIt](https://en.wikipedia.org/wiki/BagIt) format.
+   *
+   * @apiParam {Object} session Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.
+   * @apiParam {Object} output Object containing a 'type' key with the value **'bag'**.
+   *
+   * @apiSuccessExample Success-Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "url": "physical_asset_8a0e49ed-30da-42b5-984e-2cadd25e1cc0/bag.zip",
+   *     }
+   *
+   * @apiSuccess {String} url Download URL for the BagIt SIP.
+   *
+   */
+
+   /**
+    * @api {post} /sip Create Rosetta SIP
+    * @apiVersion 0.7.0
+    * @apiName PostRosettaSIP
+    * @apiGroup DigitalPreservation
+    * @apiPermission none
+    *
+    * @apiDescription Creates a new Submission Information Package (SIP) in the [Rosetta](https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices) format.
+    *
+    * @apiParam {Object} session Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.
+    * @apiParam {Object} output Object containing a 'type' key with the value **'rosetta'**.
+    *
+    * @apiSuccessExample Success-Response:
+    *     HTTP/1.1 200 OK
+    *     {
+    *       "sip_id": "33505",
+    *     }
+    *
+    * @apiSuccess {String} sip_id SIP ID from the Rosetta DPS. This can be used to get the download information for the uploaded files from the SIP (see Rosetta's [web services documentation](https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices) on how to do that).
+    *
+    */
   create: function(req, res, next) {
 
     console.log('body: ' + JSON.stringify(req.body.session, null, 4));
@@ -171,7 +215,7 @@ module.exports = {
             console.log('Created output at: ' + outputPath);
 
             var url = outputPath.replace('/tmp/', '/public/');
-            
+
             return res.send({
               url: url
             }).status(200);

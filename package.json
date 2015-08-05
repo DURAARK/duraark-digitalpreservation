@@ -1,8 +1,8 @@
 {
-  "name": "duraark-microservice-base",
+  "name": "duraark-digitalpreservation",
   "private": false,
-  "version": "0.5.0",
-  "description": "Microservice providing an API for generating submission information packages (SIPs).",
+  "version": "0.7.0",
+  "description": "Microservice providing an API for generating Submission Information Packages (SIPs) and for depositing SIPs to the Rosetta DPS.",
   "keywords": [
     "duraark",
     "api",
@@ -39,20 +39,17 @@
   "scripts": {
     "start": "node app.js",
     "debug": "node debug app.js",
-    "test": "grunt test"
+    "test": "grunt test",
+    "docs": "apidoc -i ./api -o ./assets"
   },
   "main": "app.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/DURAARK/microservice-base.git"
+    "url": "git://github.com/DURAARK/duraark-digitalpreservation.git"
   },
-  "author": {
-    "name": "Martin Hecher",
-    "email": "martin.hecher@fraunhofer.at"
-  },
+  "author": "Martin Hecher <martin.hecher@fraunhofer.at>",
   "license": "MIT",
   "devDependencies": {
-    "nodemon": "^1.2.1",
     "mocha": "^2.1.0",
     "grunt-mocha-test": "^0.12.6",
     "sinon": "^1.12.2",
@@ -60,9 +57,9 @@
     "chai": "~1.10.0"
   },
   "bugs": {
-    "url": "https://github.com/DURAARK/microservice-base/issues"
+    "url": "https://github.com/DURAARKduraark-digitalpreservation/issues"
   },
-  "homepage": "https://github.com/DURAARK/microservice-base",
+  "homepage": "https://github.com/DURAARKduraark-digitalpreservation",
   "directories": {
     "test": "tests"
   },
@@ -76,15 +73,20 @@
     "name": "duraark",
     "email": "martin.hecher@fraunhofer.at"
   },
-  "maintainers": [
-    {
-      "name": "duraark",
-      "email": "martin.hecher@fraunhofer.at"
-    }
-  ],
+  "maintainers": [{
+    "name": "duraark",
+    "email": "martin.hecher@fraunhofer.at"
+  }],
   "dist": {
     "shasum": "56ac25d963d21367d9e6be3f672a3c75839e0693",
     "tarball": "http://registry.npmjs.org/duraark-microservice-base/-/duraark-microservice-base-0.2.5.tgz"
   },
-  "_resolved": "https://registry.npmjs.org/duraark-microservice-base/-/duraark-microservice-base-0.2.5.tgz"
+  "_resolved": "https://registry.npmjs.org/duraark-microservice-base/-/duraark-microservice-base-0.2.5.tgz",
+  "apidoc": {
+    "name": "duraark-digitalpreservation",
+    "version": "0.7.0",
+    "title": "DURAARK DigitalPreservation Service",
+    "url": "http://data.duraark.eu/services/api/digitalpreservation",
+    "sampleUrl": "http://data.duraark.eu/services/api/digitalpreservation"
+  }
 }
