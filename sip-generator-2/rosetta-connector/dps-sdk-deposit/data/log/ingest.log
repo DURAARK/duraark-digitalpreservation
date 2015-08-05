@@ -1,0 +1,10 @@
+Wed Aug 05 11:55:53 CEST 2015 : Started Processing Deposit For : DepositExample1
+Wed Aug 05 11:55:54 CEST 2015 : Sip Result: <ser:deposit_result xmlns:ser="http://www.exlibrisgroup.com/xsd/dps/deposit/service">
+  <ser:is_error>false</ser:is_error>
+  <ser:sip_id>33494</ser:sip_id>
+  <ser:deposit_activity_id>39107</ser:deposit_activity_id>
+  <ser:user_params>pdsHandle=58201511555214891139218488227893, materialFlowId=36411632, subDirectoryName=cdec2f6f-cd34-4f19-b535-427be03e17e1/ie_id1, producerId=36384081, depositSetId=1</ser:user_params>
+  <ser:creation_date>Wed Aug 05 11:55:53 CEST 2015</ser:creation_date>
+</ser:deposit_result>
+Wed Aug 05 11:55:54 CEST 2015 : Finished Processing Deposit For : DepositExample1, processing took 593 milliseconds
+Wed Aug 05 11:55:54 CEST 2015 : Ingest finished
