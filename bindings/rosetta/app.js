@@ -17,7 +17,7 @@ Rosetta.prototype.deposit = function(sourceDir) {
   var rosetta = this;
 
   console.log('[Rosetta::deposit] configuration: ' + sourceDir);
-  var subDir = sourceDir.replace('/tmp/', '');
+  var subDir = sourceDir.replace('/', '');
 
   console.log('[Rosetta::deposit] subdir: ' + subDir);
 
@@ -50,8 +50,6 @@ Rosetta.prototype.deposit = function(sourceDir) {
 };
 
 Rosetta.prototype.upload = function(sourceDir) {
-  var Client = require('ssh2').Client;
-
   return new Promise(function(resolve, reject) {
 
     var uuid = sourceDir.split('/').pop();
@@ -60,7 +58,7 @@ Rosetta.prototype.upload = function(sourceDir) {
         host: 'exchange.tib.eu',
         username: 'duraark',
         path: sourceDir,
-        remoteDir: '/tib_extern_deposit_duraark/' + uuid,
+        remoteDir: '/tib_extern_deposit_duraark/tmp/' + uuid,
         privateKey: fs.readFileSync('/home/hecher/.ssh/id_rsa')
       },
       sftp = new Sftp(options);
@@ -97,7 +95,7 @@ Rosetta.prototype.start = function(sourceDir, output) {
       var args = [sourceDir, output, '/exlibris1/transfer/tib_duraark'],
         executable = path.join(rosettaExecutable, 'SIP_Generator.jar');
 
-      var executable = spawn('java', ['-jar', executable, sourceDir, output, '/exlibris1/transfer/tib_duraark']);
+      var executable = spawn('java', ['-jar', executable, sourceDir, output, '/exlibris1/transfer/tib_extern_deposit_duraark']);
       executable.stdout.on('data', function(data) {
         console.log(data.toString());
       });
@@ -125,6 +123,7 @@ Rosetta.prototype.start = function(sourceDir, output) {
             // var subDir = 'session_physicalasset_fa3a93318f644fe9bc97f781cdc1d501';
             // var subDir = 'fa3a93318f644fe9bc97f781cdc1d501';
             var subDir = path.join(sourceDir, entity);
+            // var subDir = entity;
 
             deposits.push(rosetta.deposit(subDir));
           }
