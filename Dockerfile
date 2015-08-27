@@ -9,7 +9,7 @@ RUN apt-get install software-properties-common -y
 RUN add-apt-repository ppa:chris-lea/node.js -y
 RUN apt-get update -y
 RUN apt-get -y install nodejs -y
-RUN sudo npm install sails -g
+RUN sudo npm install sails nodemon -g
 
 RUN apt-get -y install openjdk-7-jdk
 
