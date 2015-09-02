@@ -1,0 +1,11 @@
+PDS_PATH=https://rosetta.develop.lza.tib.eu/pds?
+DEFAULT_INST=INS00
+IE_WS_PATH=http://rosetta.develop.lza.tib.eu/dpsws/repository/IEWebServices?wsdl
+SIP_WS_PATH=http://rosetta.develop.lza.tib.eu/dpsws/repository/SipWebServices?wsdl
+DEP_WS_PATH=http://rosetta.develop.lza.tib.eu/dpsws/deposit/DepositWebServices?wsdl
+PROD_WS_PATH=http://rosetta.develop.lza.tib.eu/dpsws/backoffice/ProducerWebServices?wsdl
+DELIVERY_PATH=http://rosetta.develop.lza.tib.eu/delivery
+MATERIAL_FLOW_ID=36411632
+PRODUCER_ID=36384081
+MATERIAL_FLOW_DEPOSIT_FOLDER=C:/dps/workspaceHEAD_SVN/profile/deposit/data/depositExamples/
+TRANSFORM_XSL=xml_to_ros.xsl
