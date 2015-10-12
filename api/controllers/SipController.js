@@ -78,15 +78,16 @@ function symLinktoDerivates(opts) {
   });
 }
 
-function createBuilMXML(opts) {
+function createBuildMXML(opts) {
   return new Promise(function(resolve, reject) {
 
     console.log("[ConverterController::Creating buildm.xml] buildm: " + JSON.stringify(opts.buildm, null, 4));
     var jsonld2xml = new Jsonld2xml();
 
     var buildmXML = jsonld2xml.toXML(opts.buildm);
+    // var buildmXML = "<dummy></dummy>";
 
-    console.log("[ConverterController::createBuilMXML]: " + opts.sourceMDPath);
+    console.log("[ConverterController::createBuildMXML]: " + opts.sourceMDPath);
 
     fs.writeFile(path.join(opts.sourceMDPath, 'buildm.xml'), buildmXML, function(err) {
       resolve(opts);
@@ -159,7 +160,7 @@ module.exports = {
     */
   create: function(req, res, next) {
 
-    console.log('body: ' + JSON.stringify(req.body.session, null, 4));
+    // console.log('body: ' + JSON.stringify(req.body.session, null, 4));
 
     var session = req.body.session[0],
       output = req.body.output,
@@ -202,7 +203,7 @@ module.exports = {
       promises.push(newFolderStructure(opts)
         .then(symLinkToIFC)
         .then(symLinktoDerivates)
-        .then(createBuilMXML));
+        .then(createBuildMXML));
     });
 
     Promise.all(promises).then(function() {
