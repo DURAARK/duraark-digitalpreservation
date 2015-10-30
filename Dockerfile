@@ -1,23 +1,12 @@
-FROM ubuntu:14.04
+FROM duraark/microservice-base
 
-RUN DEBIAN_FRONTEND=noninteractive
+MAINTAINER Martin Hecher <martin.hecher@fraunhofer.at>
 
-RUN apt-get -y update
+RUN mkdir -p /opt/duraark-digitalpreservation
+COPY ./ /opt/duraark-digitalpreservation
 
-# Install NodeJS from PPA
-RUN apt-get install software-properties-common -y
-RUN add-apt-repository ppa:chris-lea/node.js -y
-RUN apt-get update -y
-RUN apt-get -y install nodejs -y
-RUN sudo npm install sails nodemon -g
+WORKDIR /opt/duraark-digitalpreservation
 
-RUN apt-get -y install openjdk-7-jdk
-
-RUN mkdir -p /duraark/microservice
-
-# Bundle app, install, expose and finally run it
-COPY ./ /duraark/microservice
-WORKDIR /duraark/microservice
 EXPOSE 5015
 
 RUN npm install
