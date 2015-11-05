@@ -137,32 +137,32 @@ module.exports = {
    *
    */
 
-   /**
-    * @api {post} /sip Create Rosetta SIP
-    * @apiVersion 0.7.0
-    * @apiName PostRosettaSIP
-    * @apiGroup DigitalPreservation
-    * @apiPermission none
-    *
-    * @apiDescription Creates a new Submission Information Package (SIP) in the [Rosetta](https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices) format.
-    *
-    * @apiParam {Object} session Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.
-    * @apiParam {Object} output Object containing a 'type' key with the value **'rosetta'**.
-    *
-    * @apiSuccessExample Success-Response:
-    *     HTTP/1.1 200 OK
-    *     {
-    *       "sip_id": "33505",
-    *     }
-    *
-    * @apiSuccess {String} sip_id SIP ID from the Rosetta DPS. This can be used to get the download information for the uploaded files from the SIP (see Rosetta's [web services documentation](https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices) on how to do that).
-    *
-    */
+  /**
+   * @api {post} /sip Create Rosetta SIP
+   * @apiVersion 0.7.0
+   * @apiName PostRosettaSIP
+   * @apiGroup DigitalPreservation
+   * @apiPermission none
+   *
+   * @apiDescription Creates a new Submission Information Package (SIP) in the [Rosetta](https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices) format.
+   *
+   * @apiParam {Object} session Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.
+   * @apiParam {Object} output Object containing a 'type' key with the value **'rosetta'**.
+   *
+   * @apiSuccessExample Success-Response:
+   *     HTTP/1.1 200 OK
+   *     {
+   *       "sip_id": "33505",
+   *     }
+   *
+   * @apiSuccess {String} sip_id SIP ID from the Rosetta DPS. This can be used to get the download information for the uploaded files from the SIP (see Rosetta's [web services documentation](https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices) on how to do that).
+   *
+   */
   create: function(req, res, next) {
 
-    // console.log('body: ' + JSON.stringify(req.body.session, null, 4));
+    console.log('body: ' + JSON.stringify(req.body, null, 4));
 
-    var session = req.body.session[0],
+    var session = req.body.session,
       output = req.body.output,
       physicalAsset = session.physicalAssets[0],
       digitalObjects = session.digitalObjects,
@@ -199,6 +199,8 @@ module.exports = {
         derivativePath: path.join(sipPath, 'derivative_copy'),
         sourceMDPath: path.join(sipPath, 'sourcemd'),
       };
+
+console.log('lkasjdflkjasdf: ' + JSON.stringify(opts, null, 2));
 
       promises.push(newFolderStructure(opts)
         .then(symLinkToIFC)
