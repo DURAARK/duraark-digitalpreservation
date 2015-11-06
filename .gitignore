@@ -1,3 +1,4 @@
 node_modules
 .tmp
 *.sublime-workspace
+app/bagit-4.9.0/

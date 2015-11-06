@@ -52,8 +52,11 @@ Rosetta.prototype.deposit = function(sourceDir) {
 Rosetta.prototype.upload = function(sourceDir) {
   return new Promise(function(resolve, reject) {
 
+    // FIXXME: authentication is not working at the moment, why?
+    return resolve(sourceDir);
+
     var uuid = sourceDir.split('/').pop(),
-    privateKey = null;
+      privateKey = null;
 
     try {
       privateKey = fs.readFileSync('/home/hecher/.ssh/id_rsa');
@@ -70,18 +73,24 @@ Rosetta.prototype.upload = function(sourceDir) {
       },
       sftp = new Sftp(options);
 
-    sftp.on('error', function(err) {
-        reject(err);
-      })
-      .on('uploading', function(pgs) {
-        console.log('Uploading', pgs.file);
-        console.log(pgs.percent + '% completed');
-      })
-      .on('completed', function() {
-        console.log('Upload Completed');
-        resolve(sourceDir);
-      })
-      .upload();
+    try {
+      sftp.on('error', function(err) {
+          console.log('Error connecting to SFTP: ' + err);
+          reject('Error connecting to SFTP: ' + err);
+        })
+        .on('uploading', function(pgs) {
+          console.log('Uploading', pgs.file);
+          console.log(pgs.percent + '% completed');
+        })
+        .on('completed', function() {
+          console.log('Upload Completed');
+          resolve(sourceDir);
+        })
+        .upload();
+    } catch (err) {
+      console.log('Error creating connection to SFTP: ' + err);
+      reject('Error creating connection to SFTP: ' + err);
+    }
   });
 };
 
