@@ -27,6 +27,7 @@ function newFolderStructure(opts) {
         if (err) return reject(err);
         mkdirp(opts.sourceMDPath, function(err) {
           if (err) return reject(err);
+          console.log('asdfasdfasdfasdfasdf: ' + opts.sourceMDPath);
           resolve(opts);
         });
       });
@@ -81,60 +82,86 @@ function symLinktoDerivates(opts) {
 function storeTechnicalMetadata(opts) {
   var promises = [];
 
-  _.forEach(opts.masterFiles, function(file) {
+  var filepath = opts.masterFile,
+    fileExt = filepath.split('.').pop().toLowerCase();
 
-    var fileExt = file.path.split('.').pop().toLowerCase();
+  console.log('[SipController] Processing technical metadata for file: ' + filepath);
 
-    console.log('[SipController] Processing technical metadata for file: ' + file.path);
+  // FIXXME: this should be DRY code, shouldn't it ...
+  return new Promise(function(resolve, reject) {
+    if (fileExt === 'ifc') {
+      Duraark.extractIfcm(filepath).then(function(result) {
+        var targetFileName = 'ifcm-' + filepath.split('/').pop(),
+          targetFilePath = path.join(opts.sessionFolder, 'sourcemd', targetFileName);
 
-    // FIXXME: this should be DRY code, shouldn't it ...
-    var promise = new Promise(function(resolve, reject) {
-      if (fileExt === 'ifc') {
-        Duraark.extractIfcm(file.path).then(function(result) {
-          var targetFileName = 'ifcm-' + file.path.split('/').pop(),
-            targetFilePath = path.join(opts.sessionFolder, 'sourcemd', targetFileName),
-            xmlSerialization = result.metadata['application/xml'];
+        if (!result.metadata || !result.metadata['application/xml']) {
+          return reject('No valid metadata returned for file: ' + filepath);
+        }
 
-          if (!xmlSerialization) {
-            reject('No valid metadata returned for file: ' + file.path);
-          }
+        var xmlSerialization = result.metadata['application/xml'];
 
-          try {
-            fs.writeFile(targetFilePath, xmlSerialization, function(err) {
-              console.log('[SipController] Wrote technical metadata to file: ' + targetFilePath);
-              resolve();
+        try {
+          var fileSourceMDPath = path.join(opts.sourceMDPath, 'ifcm.xml');
+          fs.writeFile(fileSourceMDPath, xmlSerialization, function(err) {
+            if (err) {
+              console.log('Error copying file: ' + err);
+              return reject(err);
+            }
+
+            console.log('[SipController] Wrote technical metadata to file: ' + targetFilePath);
+
+            fs.copySync(fileSourceMDPath, targetFilePath, function(err) {
+              // FIXXME: 'err' is set even if everything went fine. Does 'copySync' has a different signature?
+              // if (err) {
+              //   console.log('Error copying file: ' + err);
+              //   return reject('Error copying technical metadata file to "sourcemd" folder: ' + fileSourceMDPath);
+              // }
+
+              resolve(opts);
             });
-          } catch (err) {
-            reject('Cannot write metadata to file: ' + targetFilePath + '\nError: ' + err);
-          }
-        });
-      } else if (fileExt === 'e57') {
-        Duraark.extractE57m(file.path).then(function(result) {
-          var targetFileName = 'e57m-' + file.path.split('/').pop(),
-            targetFilePath = path.join(opts.sessionFolder, 'sourcemd', targetFileName);
+          });
+        } catch (err) {
+          reject('Cannot write metadata to file: ' + targetFilePath + '\nError: ' + err);
+        }
+      });
+    } else if (fileExt === 'e57') {
+      Duraark.extractE57m(filepath).then(function(result) {
+        var targetFileName = 'e57m-' + filepath.split('/').pop(),
+          targetFilePath = path.join(opts.sessionFolder, 'sourcemd', targetFileName);
 
-          if (!result.metadata || !result.metadata['application/xml']) {
-            return reject('No valid metadata returned for file: ' + file.path);
-          }
+        if (!result.metadata || !result.metadata['application/xml']) {
+          return reject('No valid metadata returned for file: ' + filepath);
+        }
 
-          var xmlSerialization = result.metadata['application/xml'];
+        var xmlSerialization = result.metadata['application/xml'];
 
-          try {
-            fs.writeFile(targetFilePath, xmlSerialization, function(err) {
-              console.log('[SipController] Wrote technical metadata to file: ' + targetFilePath);
-              return resolve();
+        try {
+          var fileSourceMDPath = path.join(opts.sourceMDPath, 'e57m.xml');
+          console.log('fileSourceMDPath' + fileSourceMDPath);
+          fs.writeFile(fileSourceMDPath, xmlSerialization, function(err) {
+            if (err) {
+              console.log('Error copying file: ' + err);
+              return reject(err);
+            }
+
+            console.log('[SipController] Wrote technical metadata to file: ' + fileSourceMDPath);
+
+            fs.copySync(fileSourceMDPath, targetFilePath, function(err) {
+              // FIXXME: 'err' is set even if everything went fine. Does 'copySync' has a different signature?
+              // if (err) {
+              //   console.log('Error copying file: ' + err);
+              //   return reject('Error copying technical metadata file to "sourcemd" folder: ' + fileSourceMDPath);
+              // }
+
+              resolve(opts);
             });
-          } catch (err) {
-            return reject('Cannot write metadata to file: ' + targetFilePath + '\nError: ' + err);
-          }
-        });
-      }
-    });
-
-    promises.push(promise);
+          });
+        } catch (err) {
+          return reject('Cannot write metadata to file: ' + targetFilePath + '\nError: ' + err);
+        }
+      });
+    }
   });
-
-  return Promise.all(promises);
 }
 
 function createBuildMXML(opts) {
@@ -242,9 +269,7 @@ module.exports = {
       },
       promises = [];
 
-    //console.log('sessionPath: ' + sessionPath);
-
-    // Remove eventual existing directory:
+    // Remove existing directory, if exists:
     fs.removeSync(sessionPath);
 
     _.forEach(digitalObjects, function(digitalObject, index, value) {
@@ -265,22 +290,21 @@ module.exports = {
         derivativePath: path.join(sipPath, 'derivative_copy'),
         sourceMDPath: path.join(sipPath, 'sourcemd'),
         sessionFolder: session.sessionFolder,
-        masterFiles: session.files
+        masterFile: digitalObject.path
       };
 
-      promises.push(storeTechnicalMetadata(opts));
-      // promises.push(newFolderStructure(opts)
-      //   .then(symLinkToIFC)
-      //   .then(symLinktoDerivates)
-      //   .then(createBuildMXML));
-
+      promises.push(newFolderStructure(opts)
+        .then(storeTechnicalMetadata)
+        .then(symLinkToIFC)
+        .then(symLinktoDerivates)
+        .then(createBuildMXML));
     });
 
     Promise.all(promises).then(function() {
       if (output.type == 'bag') {
         var uuid = UUID.v4();
         opts.target = path.join(homeDir, uuid, 'bag.zip');
-
+        
         createBagIt(opts)
           .then(function(outputPath) {
             console.log('Created output at: ' + outputPath);
@@ -294,6 +318,7 @@ module.exports = {
       } else if (output.type == 'rosetta') {
         var uuid = UUID.v4();
         opts.target = path.join(homeDir, uuid);
+
         createRosetta(opts)
           .then(function(outputPath) {
             console.log('Created output at: ' + outputPath);
