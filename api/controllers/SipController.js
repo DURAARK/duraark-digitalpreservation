@@ -78,6 +78,65 @@ function symLinktoDerivates(opts) {
   });
 }
 
+function storeTechnicalMetadata(opts) {
+  var promises = [];
+
+  _.forEach(opts.masterFiles, function(file) {
+
+    var fileExt = file.path.split('.').pop().toLowerCase();
+
+    console.log('[SipController] Processing technical metadata for file: ' + file.path);
+
+    // FIXXME: this should be DRY code, shouldn't it ...
+    var promise = new Promise(function(resolve, reject) {
+      if (fileExt === 'ifc') {
+        Duraark.extractIfcm(file.path).then(function(result) {
+          var targetFileName = 'ifcm-' + file.path.split('/').pop(),
+            targetFilePath = path.join(opts.sessionFolder, 'sourcemd', targetFileName),
+            xmlSerialization = result.metadata['application/xml'];
+
+          if (!xmlSerialization) {
+            reject('No valid metadata returned for file: ' + file.path);
+          }
+
+          try {
+            fs.writeFile(targetFilePath, xmlSerialization, function(err) {
+              console.log('[SipController] Wrote technical metadata to file: ' + targetFilePath);
+              resolve();
+            });
+          } catch (err) {
+            reject('Cannot write metadata to file: ' + targetFilePath + '\nError: ' + err);
+          }
+        });
+      } else if (fileExt === 'e57') {
+        Duraark.extractE57m(file.path).then(function(result) {
+          var targetFileName = 'e57m-' + file.path.split('/').pop(),
+            targetFilePath = path.join(opts.sessionFolder, 'sourcemd', targetFileName);
+
+          if (!result.metadata || !result.metadata['application/xml']) {
+            return reject('No valid metadata returned for file: ' + file.path);
+          }
+
+          var xmlSerialization = result.metadata['application/xml'];
+
+          try {
+            fs.writeFile(targetFilePath, xmlSerialization, function(err) {
+              console.log('[SipController] Wrote technical metadata to file: ' + targetFilePath);
+              return resolve();
+            });
+          } catch (err) {
+            return reject('Cannot write metadata to file: ' + targetFilePath + '\nError: ' + err);
+          }
+        });
+      }
+    });
+
+    promises.push(promise);
+  });
+
+  return Promise.all(promises);
+}
+
 function createBuildMXML(opts) {
   return new Promise(function(resolve, reject) {
 
@@ -167,7 +226,7 @@ module.exports = {
    */
   create: function(req, res, next) {
 
-    console.log('body: ' + JSON.stringify(req.body, null, 4));
+    // console.log('body: ' + JSON.stringify(req.body, null, 4));
 
     var session = req.body.session,
       output = req.body.output,
@@ -205,13 +264,16 @@ module.exports = {
         masterPath: path.join(sipPath, 'master'),
         derivativePath: path.join(sipPath, 'derivative_copy'),
         sourceMDPath: path.join(sipPath, 'sourcemd'),
-        sessionFolder: session.sessionFolder
+        sessionFolder: session.sessionFolder,
+        masterFiles: session.files
       };
 
-      promises.push(newFolderStructure(opts)
-        .then(symLinkToIFC)
-        .then(symLinktoDerivates)
-        .then(createBuildMXML));
+      promises.push(storeTechnicalMetadata(opts));
+      // promises.push(newFolderStructure(opts)
+      //   .then(symLinkToIFC)
+      //   .then(symLinktoDerivates)
+      //   .then(createBuildMXML));
+
     });
 
     Promise.all(promises).then(function() {
@@ -231,7 +293,6 @@ module.exports = {
           });
       } else if (output.type == 'rosetta') {
         var uuid = UUID.v4();
-        console.log('halllo: ' + homeDir);
         opts.target = path.join(homeDir, uuid);
         createRosetta(opts)
           .then(function(outputPath) {
