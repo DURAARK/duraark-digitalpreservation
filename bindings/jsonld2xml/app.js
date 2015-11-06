@@ -4,13 +4,24 @@
  * @description :: TODO: You might write a short summary of how this service works.
  */
 
-var _ = require('underscore');
+var BuildmSchema = require('./buildm-schema'),
+  _ = require('underscore');
 
-var Jsonld2xml = module.exports = function() {}
+var Jsonld2xml = module.exports = function() {
+  this._attribInfo = new BuildmSchema().getAttributeInfo();
+}
+
+// The
+Jsonld2xml.prototype.isValidKey = function (key) {
+  // console.log('[Jsonld2xml::isValidKey] checking: ' + key);
+  var attrName = key.split('/').pop();
+  return this._attribInfo.digitalObject[attrName] || this._attribInfo.physicalAsset[attrName]!== undefined;
+};
 
 Jsonld2xml.prototype.toXML = function(jsonLd) {
   // console.log('[Jsonld2xml::toXML] : ' + JSON.stringify(jsonLd, null, 4));
-  var hasDate = false;
+  var hasDate = false,
+  that = this;
 
   var xml = '<?xml version="1.0" encoding="UTF-8"?>\n<buildm>\n';
 
@@ -19,7 +30,7 @@ Jsonld2xml.prototype.toXML = function(jsonLd) {
       elementStart = null,
       elementEnd = null;
 
-    // console.log('type: |' + type + '|');
+    console.log('type: |' + type + '|');
     //
     // console.log('compare (1): http://data.duraark.eu/vocab/buildm/PhysicalAsset|');
     // console.log('compare (2): ' + type + '|');
@@ -39,7 +50,7 @@ Jsonld2xml.prototype.toXML = function(jsonLd) {
     xml += elementStart;
 
     _.forEach(item, function(value, key) {
-      if (key !== '@id' && key !== '@type') {
+      if (key !== '@id' && key !== '@type' && that.isValidKey(key)) {
         hasDate = key === 'dateCreated' ? true : false; // <dateCreated> is mandatory for the SIP Generator, so we create it in any case
         var prop = key.split('/').pop();
 

@@ -81,17 +81,26 @@ function symLinktoDerivates(opts) {
 function createBuildMXML(opts) {
   return new Promise(function(resolve, reject) {
 
-    console.log("[ConverterController::Creating buildm.xml] buildm: " + JSON.stringify(opts.buildm, null, 4));
+    // console.log("[ConverterController::Creating buildm.xml] buildm: " + JSON.stringify(opts.buildm, null, 4));
+
     var jsonld2xml = new Jsonld2xml();
 
     var buildmXML = jsonld2xml.toXML(opts.buildm);
     // var buildmXML = "<dummy></dummy>";
 
     console.log("[ConverterController::createBuildMXML]: " + opts.sourceMDPath);
+    var buildmFileName = 'buildm-' + opts.digitalObject.label.replace(' ', '_'),
+      buildmFilePath = path.join(opts.sessionFolder, 'sourcemd', buildmFileName);
+
+    fs.writeFile(buildmFilePath, buildmXML,
+      function(err) {
+        resolve(opts);
+      });
 
     fs.writeFile(path.join(opts.sourceMDPath, 'buildm.xml'), buildmXML, function(err) {
       resolve(opts);
     });
+
   });
 }
 
@@ -107,10 +116,8 @@ function createBagIt(bagItOpts) {
 
 function createRosetta(rosettaOpts, cb) {
   console.log("ConverterController::createRosetta");
-  return new Promise(function(resolve, reject) {
-    var rosetta = new Rosetta();
-    resolve(rosetta.start(rosettaOpts.source, rosettaOpts.target));
-  });
+  var rosetta = new Rosetta();
+  return rosetta.start(rosettaOpts.source, rosettaOpts.target);
 }
 
 module.exports = {
@@ -168,7 +175,7 @@ module.exports = {
       digitalObjects = session.digitalObjects,
       paBuildm = physicalAsset.buildm;
 
-    // console.log('buildm: ' + JSON.stringify(buildm, null, 4));
+    // console.log('session: ' + JSON.stringify(session, null, 4));
 
     var sessionPath = path.join(homeDir, 'session_' + path.basename(paBuildm['@id'])),
       opts = {
@@ -198,9 +205,8 @@ module.exports = {
         masterPath: path.join(sipPath, 'master'),
         derivativePath: path.join(sipPath, 'derivative_copy'),
         sourceMDPath: path.join(sipPath, 'sourcemd'),
+        sessionFolder: session.sessionFolder
       };
-
-console.log('lkasjdflkjasdf: ' + JSON.stringify(opts, null, 2));
 
       promises.push(newFolderStructure(opts)
         .then(symLinkToIFC)
@@ -225,6 +231,7 @@ console.log('lkasjdflkjasdf: ' + JSON.stringify(opts, null, 2));
           });
       } else if (output.type == 'rosetta') {
         var uuid = UUID.v4();
+        console.log('halllo: ' + homeDir);
         opts.target = path.join(homeDir, uuid);
         createRosetta(opts)
           .then(function(outputPath) {
@@ -235,10 +242,14 @@ console.log('lkasjdflkjasdf: ' + JSON.stringify(opts, null, 2));
             res.send({
               url: url
             }).status(200);
+          })
+          .catch(function(err) {
+            console.log('[SipController] SIP generation/upload error: ' + err);
+            return res.send(500, err);
           });
       }
     }).catch(function(err) {
-      console.log('error' + err);
+      console.log('[SipController] Error: ' + err);
       return res.send(500, err);
     });
   }

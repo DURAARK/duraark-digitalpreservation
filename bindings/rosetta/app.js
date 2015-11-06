@@ -52,14 +52,21 @@ Rosetta.prototype.deposit = function(sourceDir) {
 Rosetta.prototype.upload = function(sourceDir) {
   return new Promise(function(resolve, reject) {
 
-    var uuid = sourceDir.split('/').pop();
+    var uuid = sourceDir.split('/').pop(),
+    privateKey = null;
+
+    try {
+      privateKey = fs.readFileSync('/home/hecher/.ssh/id_rsa');
+    } catch (err) {
+      return reject('Private key for Rosetta upload could not be read.');
+    }
 
     var options = {
         host: 'exchange.tib.eu',
         username: 'duraark',
         path: sourceDir,
         remoteDir: '/tib_extern_deposit_duraark/tmp/' + uuid,
-        privateKey: fs.readFileSync('/home/hecher/.ssh/id_rsa')
+        privateKey: privateKey
       },
       sftp = new Sftp(options);
 
@@ -130,13 +137,15 @@ Rosetta.prototype.start = function(sourceDir, output) {
 
           Promise.all(deposits).then(function() {
             console.log('deposit finished for all intellectual entities');
-            resolve(output);
+            return resolve(output);
+          }).catch(function(err) {
+            return reject(err);
           });
 
         }).catch(function(err) {
-          reject(err);
+          console.log('Rosetta upload error: ' + err);
+          return reject(err);
         });
-
       });
     });
   });
