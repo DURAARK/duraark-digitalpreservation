@@ -73,10 +73,12 @@
     "name": "duraark",
     "email": "martin.hecher@fraunhofer.at"
   },
-  "maintainers": [{
-    "name": "duraark",
-    "email": "martin.hecher@fraunhofer.at"
-  }],
+  "maintainers": [
+    {
+      "name": "duraark",
+      "email": "martin.hecher@fraunhofer.at"
+    }
+  ],
   "dist": {
     "shasum": "56ac25d963d21367d9e6be3f672a3c75839e0693",
     "tarball": "http://registry.npmjs.org/duraark-microservice-base/-/duraark-microservice-base-0.2.5.tgz"

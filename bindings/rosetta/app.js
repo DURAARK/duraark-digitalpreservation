@@ -52,14 +52,12 @@ Rosetta.prototype.deposit = function(sourceDir) {
 Rosetta.prototype.upload = function(sourceDir) {
   return new Promise(function(resolve, reject) {
 
-    // FIXXME: authentication is not working at the moment, why?
-    return resolve(sourceDir);
-
     var uuid = sourceDir.split('/').pop(),
       privateKey = null;
 
     try {
-      privateKey = fs.readFileSync('/home/hecher/.ssh/id_rsa');
+      // FIXXME: add possibility to upload key!
+      privateKey = fs.readFileSync('/home/hecher/.ssh/id_rsa-larissa');
     } catch (err) {
       return reject('Private key for Rosetta upload could not be read.');
     }
@@ -108,10 +106,13 @@ Rosetta.prototype.start = function(sourceDir, output) {
       process.chdir(rosettaExecutable);
 
       //JAVA -jar SIP _Generator.jar D:\input D:\output /exlibris1/transfer/tib_duraark
-      var args = [sourceDir, output, '/exlibris1/transfer/tib_duraark'],
-        executable = path.join(rosettaExecutable, 'SIP_Generator.jar');
+      // var args = [sourceDir, output, '/exlibris1/transfer/tib_duraark'],
+      var executable = path.join(rosettaExecutable, 'SIP_Generator.jar'),
+        args = ['-jar', executable, sourceDir, output, '/exlibris1/transfer/tib_extern_deposit_duraark'];
 
-      var executable = spawn('java', ['-jar', executable, sourceDir, output, '/exlibris1/transfer/tib_extern_deposit_duraark']);
+      console.log('[Rosetta::start] about to execute: java ' + args.join(' '));
+
+      var executable = spawn('java', args);
       executable.stdout.on('data', function(data) {
         console.log(data.toString());
       });

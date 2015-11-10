@@ -27,7 +27,6 @@ function newFolderStructure(opts) {
         if (err) return reject(err);
         mkdirp(opts.sourceMDPath, function(err) {
           if (err) return reject(err);
-          console.log('asdfasdfasdfasdfasdf: ' + opts.sourceMDPath);
           resolve(opts);
         });
       });
@@ -304,7 +303,7 @@ module.exports = {
       if (output.type == 'bag') {
         var uuid = UUID.v4();
         opts.target = path.join(homeDir, uuid, 'bag.zip');
-        
+
         createBagIt(opts)
           .then(function(outputPath) {
             console.log('Created output at: ' + outputPath);
