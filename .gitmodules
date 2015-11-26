@@ -1,0 +1,3 @@
+[submodule "sip-generator"]
+	path = sip-generator
+	url = https://github.com/DURAARK/sip-generator.git
