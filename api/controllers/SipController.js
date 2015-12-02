@@ -23,13 +23,13 @@ function newFolderStructure(opts) {
 
     mkdirp(opts.masterPath, function(err) {
       if (err) return reject(err);
-      mkdirp(opts.derivativePath, function(err) {
+      // mkdirp(opts.derivativePath, function(err) {
+      // if (err) return reject(err);
+      mkdirp(opts.sourceMDPath, function(err) {
         if (err) return reject(err);
-        mkdirp(opts.sourceMDPath, function(err) {
-          if (err) return reject(err);
-          resolve(opts);
-        });
+        resolve(opts);
       });
+      // });
     });
   });
 
@@ -53,28 +53,37 @@ function symLinkToIFC(opts) {
 }
 
 function symLinktoDerivates(opts) {
-
   var promises = [];
 
-  _.forEach(opts.digitalObject.derivatives, function(derivativeObject) {
-
-    var promise = new Promise(function(resolve, reject) {
-      console.log("[ConverterController::symLinktoDerivates]");
-
-      var derivatesSourceFilePath = derivativeObject.path;
-      var derivatesTargetFilePath = path.join(opts.derivativePath, path.basename(derivatesSourceFilePath));
-
-      fs.copy(derivatesSourceFilePath, derivatesTargetFilePath, function(err) {
+  return new Promise(function(resolve, reject) {
+    if (opts.digitalObject.derivatives.length) {
+      mkdirp(opts.derivativePath, function(err) {
         if (err) return reject(err);
-        resolve(opts);
+
+        _.forEach(opts.digitalObject.derivatives, function(derivativeObject) {
+
+          var promise = new Promise(function(resolve, reject) {
+            console.log("[ConverterController::symLinktoDerivates]");
+
+            var derivatesSourceFilePath = derivativeObject.path;
+            var derivatesTargetFilePath = path.join(opts.derivativePath, path.basename(derivatesSourceFilePath));
+
+            fs.copy(derivatesSourceFilePath, derivatesTargetFilePath, function(err) {
+              if (err) return reject(err);
+              resolve(opts);
+            });
+          });
+
+          promises.push(promise);
+        });
+
+        return Promise.all(promises).then(function() {
+          return opts;
+        });
       });
-    });
-
-    promises.push(promise);
-  });
-
-  return Promise.all(promises).then(function() {
-    return opts;
+    } else {
+      resolve(opts);
+    }
   });
 }
 
