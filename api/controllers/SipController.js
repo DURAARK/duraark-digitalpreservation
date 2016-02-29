@@ -269,7 +269,7 @@ module.exports = {
       digitalObjects = session.digitalObjects,
       paBuildm = physicalAsset.buildm;
 
-    // console.log('session: ' + JSON.stringify(session, null, 4));
+    // console.log('session: ' + JSON.stringify(digitalObjects, null, 4));
 
     var sessionPath = path.join(homeDir, 'session_' + path.basename(paBuildm['@id'])),
       opts = {
@@ -288,8 +288,6 @@ module.exports = {
       sourceMD.push(paBuildm);
       sourceMD.push(digitalObject.buildm);
 
-      // console.log('body: ' + JSON.stringify(sourceMD, null, 4));
-
       var opts = {
         buildm: sourceMD,
         digitalObject: digitalObject,
@@ -301,8 +299,10 @@ module.exports = {
         masterFile: digitalObject.path
       };
 
+      // console.log('body: ' + JSON.stringify(opts, null, 4));
+
       promises.push(newFolderStructure(opts)
-        .then(storeTechnicalMetadata)
+        // .then(storeTechnicalMetadata)
         .then(symLinkToIFC)
         .then(symLinktoDerivates)
         .then(createBuildMXML));
