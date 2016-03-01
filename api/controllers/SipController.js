@@ -57,7 +57,7 @@ function symLinktoDerivates(opts) {
   var promises = [];
 
   return new Promise(function(resolve, reject) {
-    if (opts.digitalObject.derivatives.length) {
+    if (if opts.digitalObject.derivatives && opts.digitalObject.derivatives.length) {
       mkdirp(opts.derivativePath, function(err) {
         if (err) return reject(err);
 
@@ -271,7 +271,7 @@ module.exports = {
       paBuildm = physicalAsset.buildm;
 
     // console.log('session: ' + JSON.stringify(digitalObjects, null, 4));
-    console.log('[duraark-digitalpreservation] Requesting output: ' + output);
+    console.log('[duraark-digitalpreservation] Requesting output: ' + output.type);
 
     var sessionPath = path.join(outputBaseDir, 'session_' + path.basename(paBuildm['@id'])),
       opts = {
@@ -281,7 +281,7 @@ module.exports = {
 
     // Caching for bag.zip
     // TODO: add caching for SIP!
-    if (output === 'bag') {
+    if (output.type === 'bag') {
       var outputPath = path.join(sessionPath, 'bag.zip'),
         url = outputPath.replace(outputBaseDir, '/public/');
 
