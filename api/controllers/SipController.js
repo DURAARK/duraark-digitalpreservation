@@ -15,7 +15,7 @@ var Promise = require("bluebird"),
   UUID = require('node-uuid'),
   _ = require('underscore');
 
-var homeDir = '/tmp';
+var outputBaseDir = sails.config.outputDir;
 
 function newFolderStructure(opts) {
   return new Promise(function(resolve, reject) {
@@ -216,135 +216,147 @@ function createRosetta(rosettaOpts, cb) {
 
 module.exports = {
 
-  /**
-   * @api {post} /sip Create BagIt SIP
-   * @apiVersion 0.7.0
-   * @apiName PostBagItSIP
-   * @apiGroup DigitalPreservation
-   * @apiPermission none
-   *
-   * @apiDescription Creates a new Submission Information Package (SIP) in the [BagIt](https://en.wikipedia.org/wiki/BagIt) format.
-   *
-   * @apiParam {Object} session Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.
-   * @apiParam {Object} output Object containing a 'type' key with the value **'bag'**.
-   *
-   * @apiSuccessExample Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "url": "physical_asset_8a0e49ed-30da-42b5-984e-2cadd25e1cc0/bag.zip",
-   *     }
-   *
-   * @apiSuccess {String} url Download URL for the BagIt SIP.
-   *
-   */
+    /**
+     * @api {post} /sip Create BagIt SIP
+     * @apiVersion 0.7.0
+     * @apiName PostBagItSIP
+     * @apiGroup DigitalPreservation
+     * @apiPermission none
+     *
+     * @apiDescription Creates a new Submission Information Package (SIP) in the [BagIt](https://en.wikipedia.org/wiki/BagIt) format.
+     *
+     * @apiParam {Object} session Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.
+     * @apiParam {Object} output Object containing a 'type' key with the value **'bag'**.
+     *
+     * @apiSuccessExample Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "url": "physical_asset_8a0e49ed-30da-42b5-984e-2cadd25e1cc0/bag.zip",
+     *     }
+     *
+     * @apiSuccess {String} url Download URL for the BagIt SIP.
+     *
+     */
 
-  /**
-   * @api {post} /sip Create Rosetta SIP
-   * @apiVersion 0.7.0
-   * @apiName PostRosettaSIP
-   * @apiGroup DigitalPreservation
-   * @apiPermission none
-   *
-   * @apiDescription Creates a new Submission Information Package (SIP) in the [Rosetta](https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices) format.
-   *
-   * @apiParam {Object} session Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.
-   * @apiParam {Object} output Object containing a 'type' key with the value **'rosetta'**.
-   *
-   * @apiSuccessExample Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *       "sip_id": "33505",
-   *     }
-   *
-   * @apiSuccess {String} sip_id SIP ID from the Rosetta DPS. This can be used to get the download information for the uploaded files from the SIP (see Rosetta's [web services documentation](https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices) on how to do that).
-   *
-   */
-  create: function(req, res, next) {
+    /**
+     * @api {post} /sip Create Rosetta SIP
+     * @apiVersion 0.7.0
+     * @apiName PostRosettaSIP
+     * @apiGroup DigitalPreservation
+     * @apiPermission none
+     *
+     * @apiDescription Creates a new Submission Information Package (SIP) in the [Rosetta](https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices) format.
+     *
+     * @apiParam {Object} session Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.
+     * @apiParam {Object} output Object containing a 'type' key with the value **'rosetta'**.
+     *
+     * @apiSuccessExample Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *       "sip_id": "33505",
+     *     }
+     *
+     * @apiSuccess {String} sip_id SIP ID from the Rosetta DPS. This can be used to get the download information for the uploaded files from the SIP (see Rosetta's [web services documentation](https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices) on how to do that).
+     *
+     */
+    create: function(req, res, next) {
 
-    // console.log('body: ' + JSON.stringify(req.body, null, 4));
+      // console.log('body: ' + JSON.stringify(req.body, null, 4));
 
-    var session = req.body.session,
-      output = req.body.output,
-      physicalAsset = session.physicalAssets[0],
-      digitalObjects = session.digitalObjects,
-      paBuildm = physicalAsset.buildm;
+      var session = req.body.session,
+        output = req.body.output,
+        physicalAsset = session.physicalAssets[0],
+        digitalObjects = session.digitalObjects,
+        paBuildm = physicalAsset.buildm;
 
-    // console.log('session: ' + JSON.stringify(digitalObjects, null, 4));
+      // console.log('session: ' + JSON.stringify(digitalObjects, null, 4));
 
-    var sessionPath = path.join(homeDir, 'session_' + path.basename(paBuildm['@id'])),
-      opts = {
-        source: sessionPath,
-      },
-      promises = [];
+      var sessionPath = path.join(outputBaseDir, 'session_' + path.basename(paBuildm['@id'])),
+        opts = {
+          source: sessionPath,
+        },
+        promises = [];
 
-    // Remove existing directory, if exists:
-    fs.removeSync(sessionPath);
+      // Caching for bag.zip
+      // TODO: add caching for SIP!
+      if (output === 'bag') {
+        var outputPath = path.join(sessionPath, 'bag.zip'),
+          url = outputPath.replace(outputBaseDir, '/public/');
 
-    _.forEach(digitalObjects, function(digitalObject, index, value) {
-      var folder = index + 1;
-      var sipPath = path.join(sessionPath, 'ie_id' + folder);
-
-      var sourceMD = [];
-      sourceMD.push(paBuildm);
-      sourceMD.push(digitalObject.buildm);
-
-      var opts = {
-        buildm: sourceMD,
-        digitalObject: digitalObject,
-        sipPath: sipPath,
-        masterPath: path.join(sipPath, 'master'),
-        derivativePath: path.join(sipPath, 'derivative_copy'),
-        sourceMDPath: path.join(sipPath, 'sourcemd'),
-        sessionFolder: session.sessionFolder,
-        masterFile: digitalObject.path
-      };
-
-      // console.log('body: ' + JSON.stringify(opts, null, 4));
-
-      promises.push(newFolderStructure(opts)
-        // .then(storeTechnicalMetadata)
-        .then(symLinkToIFC)
-        .then(symLinktoDerivates)
-        .then(createBuildMXML));
-    });
-
-    Promise.all(promises).then(function() {
-      if (output.type == 'bag') {
-        var uuid = UUID.v4();
-        opts.target = path.join(homeDir, uuid, 'bag.zip');
-
-        createBagIt(opts)
-          .then(function(outputPath) {
-            console.log('Created output at: ' + outputPath);
-
-            var url = outputPath.replace('/tmp/', '/public/');
-
+        if (isThere(outputPath) {
+            console.log('[duraark-digitalpreservation] Returning cached bag.zip');
             return res.send({
               url: url
             }).status(200);
-          });
-      } else if (output.type == 'rosetta') {
-        var uuid = UUID.v4();
-        opts.target = path.join(homeDir, uuid);
+          }
+        }
 
-        createRosetta(opts)
-          .then(function(outputPath) {
-            console.log('Created output at: ' + outputPath);
+        // Remove existing directory, if exists:
+        // fs.removeSync(sessionPath);
 
-            var url = outputPath.replace('/tmp/', '/public/');
+        _.forEach(digitalObjects, function(digitalObject, index, value) {
+          var folder = index + 1;
+          var sipPath = path.join(sessionPath, 'ie_id' + folder);
 
-            res.send({
-              url: url
-            }).status(200);
-          })
-          .catch(function(err) {
-            console.log('[SipController] SIP generation/upload error: ' + err);
-            return res.send(500, err);
-          });
+          var sourceMD = [];
+          sourceMD.push(paBuildm);
+          sourceMD.push(digitalObject.buildm);
+
+          var opts = {
+            buildm: sourceMD,
+            digitalObject: digitalObject,
+            sipPath: sipPath,
+            masterPath: path.join(sipPath, 'master'),
+            derivativePath: path.join(sipPath, 'derivative_copy'),
+            sourceMDPath: path.join(sipPath, 'sourcemd'),
+            sessionFolder: session.sessionFolder,
+            masterFile: digitalObject.path
+          };
+
+          // console.log('body: ' + JSON.stringify(opts, null, 4));
+
+          promises.push(newFolderStructure(opts)
+            // .then(storeTechnicalMetadata)
+            .then(symLinkToIFC)
+            .then(symLinktoDerivates)
+            .then(createBuildMXML));
+        });
+
+        Promise.all(promises).then(function() {
+          if (output.type == 'bag') {
+            opts.target = path.join(sessionPath, 'bag.zip');
+
+            createBagIt(opts)
+              .then(function(outputPath) {
+                console.log('Created output at: ' + outputPath);
+
+                var url = outputPath.replace(outputBaseDir, '/public/');
+
+                return res.send({
+                  url: url
+                }).status(200);
+              });
+          } else if (output.type == 'rosetta') {
+            opts.target = path.join(sessionPath);
+
+            createRosetta(opts)
+              .then(function(outputPath) {
+                console.log('Created output at: ' + outputPath);
+
+                var url = outputPath.replace(outputBaseDir, '/public/');
+
+                res.send({
+                  url: url
+                }).status(200);
+              })
+              .catch(function(err) {
+                console.log('[SipController] SIP generation/upload error: ' + err);
+                return res.send(500, err);
+              });
+          }
+        }).catch(function(err) {
+          console.log('[SipController] Error: ' + err);
+          return res.send(500, err);
+        });
       }
-    }).catch(function(err) {
-      console.log('[SipController] Error: ' + err);
-      return res.send(500, err);
-    });
-  }
-};
+    };

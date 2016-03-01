@@ -26,6 +26,7 @@ module.exports = {
    ***************************************************************************/
 
   port: 5015,
+  outputDir: '/duraark-storage/archive'
 
   /***************************************************************************
    * Set the log level in production environment to "silent"                 *
