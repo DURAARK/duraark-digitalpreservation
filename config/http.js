@@ -61,7 +61,8 @@ module.exports.http = {
 
   customMiddleware: function(app) {
     var express = require('sails/node_modules/express');
-    app.use('/public', express.static('/tmp'));
+    console.log('[init] Exporting %s at /public', sails.config.outputDir);
+    app.use('/public', express.static(sails.config.outputDir));
   }
 
   /***************************************************************************
