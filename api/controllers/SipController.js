@@ -57,7 +57,7 @@ function symLinktoDerivates(opts) {
   var promises = [];
 
   return new Promise(function(resolve, reject) {
-    if (if opts.digitalObject.derivatives && opts.digitalObject.derivatives.length) {
+    if (opts.digitalObject.derivatives && opts.digitalObject.derivatives.length) {
       mkdirp(opts.derivativePath, function(err) {
         if (err) return reject(err);
 
