@@ -10,7 +10,7 @@ var Promise = require("bluebird"),
   Rosetta = require('../../bindings/rosetta/app'),
   Jsonld2xml = require('../../bindings/jsonld2xml/app'),
   isThere = require('is-there');
-  fs = Promise.promisifyAll(require('fs-extra')),
+fs = Promise.promisifyAll(require('fs-extra')),
   path = require('path'),
   mkdirp = require('mkdirp'),
   UUID = require('node-uuid'),
@@ -271,6 +271,7 @@ module.exports = {
       paBuildm = physicalAsset.buildm;
 
     // console.log('session: ' + JSON.stringify(digitalObjects, null, 4));
+    console.log('[duraark-digitalpreservation] Requesting output: ' + output);
 
     var sessionPath = path.join(outputBaseDir, 'session_' + path.basename(paBuildm['@id'])),
       opts = {
@@ -284,6 +285,8 @@ module.exports = {
       var outputPath = path.join(sessionPath, 'bag.zip'),
         url = outputPath.replace(outputBaseDir, '/public/');
 
+      console.log('[duraark-digitalpreservation] Checking for cached BagIt at: ' + outputPath);
+
       if (isThere(outputPath)) {
         console.log('[duraark-digitalpreservation] Returning cached bag.zip');
         return res.send({
@@ -291,6 +294,8 @@ module.exports = {
         }).status(200);
       }
     }
+
+    console.log('[duraark-digitalpreservation] Nothing in cache, creating new...');
 
     // Remove existing directory, if exists:
     // fs.removeSync(sessionPath);
