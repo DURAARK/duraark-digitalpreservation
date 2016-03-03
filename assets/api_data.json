@@ -3,7 +3,7 @@
     "type": "post",
     "url": "/sip",
     "title": "Create BagIt SIP",
-    "version": "0.7.0",
+    "version": "1.0.0",
     "name": "PostBagItSIP",
     "group": "DigitalPreservation",
     "permission": [
@@ -11,23 +11,23 @@
         "name": "none"
       }
     ],
-    "description": "<p>Creates a new Submission Information Package (SIP) in the <a href=\"https://en.wikipedia.org/wiki/BagIt\">BagIt</a> format.</p> ",
+    "description": "<p>Creates a new Submission Information Package (SIP) in the <a href=\"https://en.wikipedia.org/wiki/BagIt\">BagIt</a> format.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "<p>Object</p> ",
+            "type": "Object",
             "optional": false,
             "field": "session",
-            "description": "<p>Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.</p> "
+            "description": "<p>Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>Object</p> ",
+            "type": "Object",
             "optional": false,
             "field": "output",
-            "description": "<p>Object containing a 'type' key with the value <strong>'bag'</strong>.</p> "
+            "description": "<p>Object containing a 'type' key with the value <strong>'bag'</strong>.</p>"
           }
         ]
       }
@@ -44,10 +44,10 @@
         "Success 200": [
           {
             "group": "Success 200",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "url",
-            "description": "<p>Download URL for the BagIt SIP.</p> "
+            "description": "<p>Download URL for the BagIt SIP.</p>"
           }
         ]
       }
@@ -64,7 +64,7 @@
     "type": "post",
     "url": "/sip",
     "title": "Create Rosetta SIP",
-    "version": "0.7.0",
+    "version": "1.0.0",
     "name": "PostRosettaSIP",
     "group": "DigitalPreservation",
     "permission": [
@@ -72,23 +72,23 @@
         "name": "none"
       }
     ],
-    "description": "<p>Creates a new Submission Information Package (SIP) in the <a href=\"https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices\">Rosetta</a> format.</p> ",
+    "description": "<p>Creates a new Submission Information Package (SIP) in the <a href=\"https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices\">Rosetta</a> format.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "<p>Object</p> ",
+            "type": "Object",
             "optional": false,
             "field": "session",
-            "description": "<p>Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.</p> "
+            "description": "<p>Object containing arrays for the 'physicalAssets' and 'digitalObjects' that should go into the SIP.</p>"
           },
           {
             "group": "Parameter",
-            "type": "<p>Object</p> ",
+            "type": "Object",
             "optional": false,
             "field": "output",
-            "description": "<p>Object containing a 'type' key with the value <strong>'rosetta'</strong>.</p> "
+            "description": "<p>Object containing a 'type' key with the value <strong>'rosetta'</strong>.</p>"
           }
         ]
       }
@@ -105,10 +105,10 @@
         "Success 200": [
           {
             "group": "Success 200",
-            "type": "<p>String</p> ",
+            "type": "String",
             "optional": false,
             "field": "sip_id",
-            "description": "<p>SIP ID from the Rosetta DPS. This can be used to get the download information for the uploaded files from the SIP (see Rosetta's <a href=\"https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices\">web services documentation</a> on how to do that).</p> "
+            "description": "<p>SIP ID from the Rosetta DPS. This can be used to get the download information for the uploaded files from the SIP (see Rosetta's <a href=\"https://developers.exlibrisgroup.com/rosetta/apis/SipWebServices\">web services documentation</a> on how to do that).</p>"
           }
         ]
       }

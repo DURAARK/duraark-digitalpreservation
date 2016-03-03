@@ -219,7 +219,7 @@ module.exports = {
 
   /**
    * @api {post} /sip Create BagIt SIP
-   * @apiVersion 0.7.0
+   * @apiVersion 1.0.0
    * @apiName PostBagItSIP
    * @apiGroup DigitalPreservation
    * @apiPermission none
@@ -241,7 +241,7 @@ module.exports = {
 
   /**
    * @api {post} /sip Create Rosetta SIP
-   * @apiVersion 0.7.0
+   * @apiVersion 1.0.0
    * @apiName PostRosettaSIP
    * @apiGroup DigitalPreservation
    * @apiPermission none

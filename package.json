@@ -1,7 +1,7 @@
 {
   "name": "duraark-digitalpreservation",
   "private": false,
-  "version": "0.7.0",
+  "version": "1.0.0",
   "description": "Microservice providing an API for generating Submission Information Packages (SIPs) and for depositing SIPs to the Rosetta DPS.",
   "keywords": [
     "duraark",
@@ -87,7 +87,7 @@
   "_resolved": "https://registry.npmjs.org/duraark-microservice-base/-/duraark-microservice-base-0.2.5.tgz",
   "apidoc": {
     "name": "duraark-digitalpreservation",
-    "version": "0.7.0",
+    "version": "1.0.0",
     "title": "DURAARK DigitalPreservation Service",
     "url": "http://data.duraark.eu/services/api/digitalpreservation",
     "sampleUrl": "http://data.duraark.eu/services/api/digitalpreservation"
